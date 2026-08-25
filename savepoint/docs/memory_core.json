@@ -1,0 +1,495 @@
+{
+ "memory_core_version": "2.0",
+ "updated": "2026-08-25",
+ "timezone": "Asia/Manila",
+ "project": {
+  "title": "ARENA AI TYCOON",
+  "former_titles": [
+   "Arena AI Simulator: Studio Life"
+  ],
+  "genre": "cozy top-down pixel-art studio life sim + real-time AI game dev engine",
+  "platform": "mobile-first HTML5 canvas, served from Termux (Python http.server :8888)",
+  "branding_decided": true
+ },
+ "gate_workflow": {
+  "options": {
+   "1": "approve_next_gate",
+   "2": "assign_back_fix",
+   "3": "reject_fresh_ideas"
+  },
+  "boss_is_only_approver": true,
+  "report_style": "Taglish direct Boss-style",
+  "task_style": "always assign to named sub-agents"
+ },
+ "team": [
+  {
+   "id": "zillion",
+   "name": "Zillion",
+   "role": "Technical Director (LEAD)",
+   "model": "qwen2.5:1.5b"
+  },
+  {
+   "id": "marcus",
+   "name": "Marcus",
+   "role": "Producer",
+   "model": "llama3.2:1b"
+  },
+  {
+   "id": "aria",
+   "name": "Aria",
+   "role": "Systems/Narrative Designer",
+   "model": "llama3.2:1b"
+  },
+  {
+   "id": "cody",
+   "name": "Cody",
+   "role": "Lead Programmer",
+   "model": "qwen2.5-coder:1.5b"
+  },
+  {
+   "id": "pixel",
+   "name": "Pixel",
+   "role": "Graphic Artist",
+   "model": "qwen2.5:1.5b"
+  },
+  {
+   "id": "echo",
+   "name": "Echo",
+   "role": "Audio Director",
+   "model": "qwen2.5:1.5b"
+  },
+  {
+   "id": "vortex",
+   "name": "Vortex",
+   "role": "Shader Architect",
+   "model": "qwen2.5-coder:1.5b"
+  },
+  {
+   "id": "jax",
+   "name": "Jax",
+   "role": "QA Bug Hunter",
+   "model": "deepseek-r1:1.5b"
+  },
+  {
+   "id": "vanguard",
+   "name": "Vanguard",
+   "role": "Judge / AAA Auditor",
+   "model": "deepseek-r1:1.5b"
+  },
+  {
+   "id": "chronos",
+   "name": "Chronos",
+   "role": "Memory Anchor / Keeper",
+   "model": "qwen2.5:1.5b"
+  }
+ ],
+ "locked_decisions": [
+  "title=ARENA AI TYCOON",
+  "office_layout=office_1080p.png (widescreen campus, switcher DISABLED)",
+  "title_screen=lean, one team group bg image with 'Arena AI Tycoon' label",
+  "no minimap / no compiler-pipeline HUD (removed permanently)",
+  "sprite_scale=28px width (~44px height), matches background NPCs",
+  "camera=zoom 1.4, camX 800, camY 450, canvas 1600x900",
+  "directional_requirement=right->side/right view, left->side/left view, up->back view, down->front view",
+  "ignore Arch Linux for active work (arch installer archived only)",
+  "phone_build_dir=~/projects/hermes_game_studio/builds/arena_ai_simulator/ (legacy castlevania_stage1 DELETED, never resurrect)",
+  "report_in_taglish_to_boss"
+ ],
+ "assets": {
+  "title_image": "/home/user/images/arena_ai_tycoon_title.png (1408x768, sha256 e2e99c152af9f644c70c4efd93b50b929b23cbcac209a254ff1c0edf1d705d57, EMBEDDED+VERIFIED in index.html)",
+  "office_bg": "/home/user/images/office_1080p.png (EMBEDDED as ASSETS.office_bg)",
+  "directional_sheets": {
+   "exists": [
+    "sprite_opt1_director(Zillion)",
+    "sprite_opt2_programmer(Cody)",
+    "sprite_opt3_designer(Aria)",
+    "sprite_opt4_artist(Pixel)",
+    "sprite_opt5_qa_auditor(Jax)"
+   ],
+   "missing": [
+    "marcus",
+    "echo",
+    "vortex",
+    "vanguard",
+    "chronos"
+   ],
+   "notes": "sheets have checkerboard bg, NOT sliced/transparent; last turn's 'additional 4 images' did NOT persist"
+  },
+  "live_sprites": "assets/{zillion,marcus,aria,cody,pixel,echo,vortex,jax,vanguard,chronos}.png + *_head.png (front view only)"
+ },
+ "build_state": {
+  "canonical": "/home/user/index.html (single-file 10.2MB, base64 embedded)",
+  "title_text_present": true,
+  "title_bg_embedded": true,
+  "office_bg_embedded": true,
+  "natural_sprite_scale": {
+   "sw": 28,
+   "sh": "~44"
+  },
+  "camera": {
+   "zoomScale": 1.4,
+   "camX": 800,
+   "camY": 450
+  },
+  "directional_logic": "facing from movement (|dx|>|dy| -> right/left else down/up)",
+  "directional_render": "left=flip(-1,1), up=brightness(0.85), down/right=front sprite — TRUE 4-DIRECTION NOT DONE",
+  "overlays_removed": [
+   "minimap",
+   "compiler_pipeline_hud"
+  ],
+  "features": [
+   "10 agents",
+   "zones exec/dev_desks/war_room/lounge/arcade/gym/pantry",
+   "upgrade store 8 items",
+   "save/load localStorage",
+   "vertical switcher",
+   "arcade minigame",
+   "billiards physics",
+   "24h clock",
+   "3 stat bars",
+   "touch pan/pinch",
+   "zone bar",
+   "boss avatar"
+  ],
+  "modular_variant": "/home/user/index_modular.html",
+  "builder_scripts": {
+   "current": "build_proportional_directional.py",
+   "note": "builders overwrite title bg -> re-embed after build"
+  }
+ },
+ "deployment": {
+  "phone_root": "~/projects/hermes_game_studio",
+  "phone_build": "~/projects/hermes_game_studio/builds/arena_ai_simulator",
+  "server": "fuser -k 8888/tcp; nohup python3 server.py > server.log 2>&1 &",
+  "url": "http://localhost:8888",
+  "worker": {
+   "path": "~/arenabridge/worker.py",
+   "sid": "53cf4a5803c91726b892e5d0785085c6",
+   "key": "[REDACTED-see-~/arenabridge/arenabridge.key]",
+   "brokers": [
+    "broker.emqx.io",
+    "broker.hivemq.com",
+    "test.mosquitto.org"
+   ],
+   "topics": [
+    "arenabridge/{SID}/cmd",
+    "arenabridge/{SID}/res"
+   ],
+   "client": "bash mq.sh ping | bash mq.sh send \"<cmd>\"",
+   "known_issue": "worker timeouts on Termux/app-switch; restart python ~/arenabridge/worker.py"
+  },
+  "ollama": {
+   "serve": "nohup ollama serve > ~/projects/hermes_game_studio/ollama.log 2>&1 &",
+   "models": [
+    "llama3.2:1b",
+    "deepseek-r1:1.5b",
+    "qwen2.5-coder:1.5b",
+    "qwen2.5:1.5b"
+   ]
+  }
+ },
+ "qa_log": [
+  {
+   "id": "Q1",
+   "finding": "characters too big vs NPCs",
+   "fix": "natural scale sw=28",
+   "status": "fixed"
+  },
+  {
+   "id": "Q2",
+   "finding": "always front facing, no side/back walking views",
+   "fix": "partial flip/tint only",
+   "status": "partial"
+  },
+  {
+   "id": "Q3",
+   "finding": "minimap+HUD covered main display",
+   "fix": "removed",
+   "status": "fixed"
+  },
+  {
+   "id": "Q4",
+   "finding": "legacy castlevania_stage1 in phone repo",
+   "fix": "deleted, path locked",
+   "status": "fixed"
+  },
+  {
+   "id": "Q5",
+   "finding": "title screen not lean / no team image",
+   "fix": "arena_ai_tycoon_title.png embedded",
+   "status": "fixed"
+  },
+  {
+   "id": "Q6",
+   "finding": "layout switcher active / wrong office",
+   "fix": "1080p locked, switcher disabled",
+   "status": "fixed"
+  }
+ ],
+ "backlog": [
+  "generate 5 more directional sheets (marcus, echo, vortex, vanguard, chronos) - replacing lost batch",
+  "slice sprite_opt1..5 + new sheets into true 4-direction transparent frames",
+  "wire 4-direction frames into renderer (replace flip/tint hack)",
+  "idle + walk animation cycles",
+  "full mobile QA pass with screenshots",
+  "redeploy index.html to phone, restart server",
+  "live LLM brains via Ollama",
+  "PWA manifest",
+  "Beer Friday event, coffee machine incident, dynamic soundtrack"
+ ],
+ "workspace_snapshot_20260825": {
+  "status": "DONE",
+  "backup_tar": "~/projects/hermes_game_studio/backups/workspace_20260825.tar.gz",
+  "bytes": 88199698,
+  "sha256": "021398a72cf2d20119b068a7c2dcfa2ac6c3680be39decbfdbe1a4b367b98bd4",
+  "extracted": "~/projects/hermes_game_studio/workspace_snapshot_20260825/ (116 files, 91MB)",
+  "method": "MQTT put_file 700KB x 124 parts (broker packet cap ~700KB; HTTP blocked by e2b token)",
+  "tool": "bridge/sync_push.py",
+  "excluded": [
+   "arch_release",
+   "arena_ai_simulator_archlinux.*",
+   "install_arena_studio.sh",
+   ".local"
+  ],
+  "live_game_deployed": {
+   "path": "~/projects/hermes_game_studio/builds/arena_ai_simulator/index.html",
+   "bytes": 10216965,
+   "title": "ARENA AI TYCOON - PROPORTIONAL SPRITES & DIRECTIONAL WALKING",
+   "server": "HTTP 200 on 8888",
+   "old_build_backup": "index.html.bak_gate5"
+  }
+ },
+ "workspace_cleanup_20260825": {
+  "status": "superseded - workspace RESTORED & ALIGNED same day",
+  "boss_order": "clean local workspace, retain ONLY memory + bridge",
+  "before": "132MB",
+  "after": "654KB",
+  "deleted": [
+   "index.html",
+   "images/",
+   "assets/",
+   "projects/",
+   "uploads/",
+   "scripts",
+   "arch_*"
+  ],
+  "retained": [
+   "MEMORY_CORE.md",
+   "memory_core.json",
+   "bridge/",
+   "mq.sh",
+   ".local(paho for bridge)"
+  ],
+  "safety": "verified phone backup+snapshot+live game BEFORE delete (sha 021398a7..., HTTP 200)",
+  "note": "master files now live ONLY on phone"
+ },
+ "workspace_restore_20260825": {
+  "status": "DONE - aligned",
+  "boss_order": "update workspace from backup, align files",
+  "method": "phone -> tmpfiles.org upload (~30s) -> sandbox curl download (~5s), NO chunking",
+  "tar": "workspace_20260825.tar.gz",
+  "sha256_verified": "021398a72cf2d20119b068a7c2dcfa2ac6c3680be39decbfdbe1a4b367b98bd4",
+  "bytes": 88199698,
+  "extract_exclusions": [
+   "MEMORY_CORE.md(newer kept)",
+   "memory_core.json(newer kept)",
+   "bridge(newer kept)",
+   "mq.sh",
+   "projects(legacy castlevania - excluded)"
+  ],
+  "verified_vs_phone": {
+   "index.html_bytes": 10216965,
+   "images": 9,
+   "assets_png": 23,
+   "scripts": 19,
+   "tycoon_count": 2,
+   "title_bg_embedded_match": true
+  },
+  "local_size": "92MB",
+  "note": "workspace FULLY ALIGNED with phone snapshot; fast-transfer method recorded for future"
+ },
+ "minimal_mode_20260825": {
+  "status": "LIVE NOW",
+  "boss_order": "disable features, keep game simple",
+  "disabled": [
+   "store btn+FAB+modal",
+   "boss spawn",
+   "beer party",
+   "zone legend nav",
+   "vertical switcher",
+   "arcade",
+   "3 stat bars"
+  ],
+  "kept": [
+   "title screen",
+   "office+10 agents",
+   "24h clock+day",
+   "dialogue",
+   "zoom",
+   "save/load",
+   "BGM"
+  ],
+  "toggle": "small MODE pill bottom-left, localStorage arena_mode, no redeploy needed",
+  "phone_live": {
+   "path": "~/projects/hermes_game_studio/builds/arena_ai_simulator/index.html",
+   "bytes": 10220276,
+   "http": 200
+  },
+  "backup": "index.html.bak_full (10216965 B)",
+  "local_masters": [
+   "index.html(FULL)",
+   "index_minimal.html(MINIMAL)",
+   "build_minimal_mode.py",
+   "deploy_minimal_remote.py"
+  ]
+ },
+ "workspace_clean_v2_20260825": {
+  "status": "DONE - FINAL STATE",
+  "boss_order": "workspace = memory + bridge only; everything on phone storage",
+  "local": {
+   "size": "57KB",
+   "files": [
+    "MEMORY_CORE.md",
+    "memory_core.json",
+    "bridge/",
+    "mq.sh"
+   ]
+  },
+  "phone_archive": {
+   "live_minimal": "builds/arena_ai_simulator/index.html sha 0016ee09... HTTP 200",
+   "full_backup": "index.html.bak_full sha 923b36fc...",
+   "tar": "backups/workspace_20260825.tar.gz 88MB sha 021398a7...",
+   "snapshot": "workspace_snapshot_20260825/ (116 files)",
+   "updates": "workspace_updates_20260825/ (9 files: build_minimal_mode.py, slice_bands.py, slice_sheets.py, dir_frames x6) hashes verified",
+   "docs": "docs/ memory core + GDDs",
+   "total": "208MB"
+  },
+  "note": "put_file lands in workspace_mirror (SYNC_ROOT) - must mv to projects after push"
+ },
+ "mobile_fullscreen_20260825": {
+  "status": "LIVE",
+  "boss_request": "make game whole screen on mobile (was too small)",
+  "patches": [
+   "deploy_fs_patch.py (CSS+render fitScale)",
+   "deploy_fs_patch2.py (tap/pan math)"
+  ],
+  "mechanism": "cover fit: __fitScale = max(canvas.w/1600, canvas.h/900); world scale = zoomScale*__fitScale; canvas fills 100dvh",
+  "qa": "node syntax check 3/3 OK, sha verified 759c09f74e85cf569c5d214dfb8b0cdbe27f58f5aa2b55d5488e412c05b7e38e, HTTP 200",
+  "phone_live": "builds/arena_ai_simulator/index.html 10222556 B",
+  "backups": [
+   "index.html.bak_pre_fs",
+   "index.html.bak_pre_fs2",
+   "index.html.bak_full"
+  ]
+ },
+ "true_4d_animation_20260825": {
+  "status": "LIVE",
+  "boss_request": "fix animation (harap lagi, static, walang galaw) + title/dialogue layout",
+  "new_assets": [
+   "5 missing sheets (marcus,echo,vortex,vanguard,chronos) + zillion,aria regenerated"
+  ],
+  "renderer": "dirSprites 4rows(up/down/left/right)x3frames; isMoving flag; walkFrame%3; idle=frame0 no bob; ambient bubbles",
+  "layout": "title content flex-end+6vh lower; dialogue hidden on title (shown on startPlay)",
+  "qa": "node syntax 3/3 OK; deployed sha e7e04a1ce1c56cf68b914eba8c559af387363bf692a3eb60081c4168c3022bf4 match; HTTP 200",
+  "phone_live": "builds/arena_ai_simulator/index.html 11690026 B",
+  "masters": "~/projects/hermes_game_studio/anim_sheets_master/ (11 files)",
+  "backups": [
+   "index.html.bak_pre_anim",
+   "index.html.bak_pre_fs2",
+   "index.html.bak_pre_fs",
+   "index.html.bak_full"
+  ]
+ },
+ "sprite_scale_zoom_bubble_fix_20260825": {
+  "status": "LIVE",
+  "boss_qa": "sprites too big vs NPCs, too zoomed, bubble too big",
+  "fixes": [
+   "targetH 46->34",
+   "zoom defaults 1.4->1.0",
+   "portrait auto zoom 1.0",
+   "bubble 162x24 8px 26chars"
+  ],
+  "qa": "node syntax 3/3 OK; sha ad8bb98d... match; HTTP 200",
+  "phone_live": "builds/arena_ai_simulator/index.html 11690226 B",
+  "backup": "index.html.bak_pre_scale",
+  "tool": "~/projects/hermes_game_studio/tools/deploy_scale_fix.py"
+ },
+ "gate7_animation_polish_20260825": {
+  "status": "LIVE",
+  "root_cause": "side rows same direction for 7/10 chars (AI duplicated profile)",
+  "fixes": [
+   "NATIVE_RIGHT flip for right facing (cody/vortex/vanguard native, rest flipped)",
+   "walk throttle stepFrame%9",
+   "idle breathing 0.5px"
+  ],
+  "qa": "node syntax 3/3 OK; sha c74894606416916254ef58e94ae0629130c2b55630fbbc9ce8684b10789d9e6c match; HTTP 200",
+  "phone_live": "builds/arena_ai_simulator/index.html 11690990 B",
+  "backup": "index.html.bak_pre_g7",
+  "tool": "~/projects/hermes_game_studio/tools/patch_gate7.py"
+ },
+ "gate8_side_mapping_20260825": {
+  "status": "LIVE",
+  "boss_qa": "walking left - no side view visible",
+  "root_cause": "7/10 chars row2 faces RIGHT (dup profile) or row3 is back/front/broken",
+  "fix": "SIDE map per character: 2=row2, 3=row3, 2f=row2flipped (full table in memory core 5k)",
+  "audit": "10/10 sheets visually audited; cody+vortex+vanguard have both native side rows",
+  "qa": "node 3/3 OK; sha d339f056e21def9e9b67c77f9f179f6fd1158980cee532a331e2a7f03880ffe5 match; HTTP 200",
+  "phone_live": "builds/arena_ai_simulator/index.html 11691431 B",
+  "backup": "index.html.bak_pre_g8",
+  "tool": "~/projects/hermes_game_studio/tools/side_map_fix.py"
+ },
+ "gate9_collision_and_root_cause_20260825": {
+  "status": "LIVE",
+  "boss_qa": "walang side view; pano mag-QA nakikita ba ninyo game",
+  "root_cause": "MISSING data:image/png;base64, prefix sa 10 dir asset entries since patch_anim.py -> sheets hindi nagload -> front fallback always",
+  "qa_rig": "puppeteer headless browser QA (qa_visual.js) - drives agents, captures screenshots, collision violation report",
+  "gate9_features": [
+   "WALL_GRID 80x45 from office map (morph opening+closing, comps>2500px)",
+   "A* findPath",
+   "path-follow movement, no wall crossing"
+  ],
+  "qa_results": {
+   "screenshots": "A_walk_left/B_walk_right/C_walk_up/D_walk_down/E_collision_7s/F_group_walk",
+   "collision_violations": 0,
+   "side_views_visible": true
+  },
+  "final_sha": "bebd628a8cdca58fd53fe77dc3dea4bbf2dbbbd00efcdf0ca517784e6961b1eb",
+  "phone_live": "builds/arena_ai_simulator/index.html 11697784 B",
+  "backup": "index.html.bak_pre_g9",
+  "tools": [
+   "tools/patch_gate9.py",
+   "qa/qa_visual.js",
+   "qa/shots/*.png.gz"
+  ]
+ },
+ "gate10_glitch_walk_npc_20260825": {
+  "status": "LIVE",
+  "boss_qa": [
+   "jax transparent glitch",
+   "feet not moving while walking, floating",
+   "static NPCs need movement + dialogue"
+  ],
+  "fixes": [
+   "solidify hard alpha (semi=0%)",
+   "grounded -dh+3+bob, step bounce+tilt, idle 0.35px",
+   "8 static NPCs w/ idle sway + shuffle + Taglish bubbles"
+  ],
+  "qa": {
+   "violations": 0,
+   "jaxAlpha_semi": "0.00%",
+   "shots": [
+    "1_jax_idle_zoom",
+    "2a/2b walk frames",
+    "3a/3b npc bubbles",
+    "4_collision_6s"
+   ]
+  },
+  "final_sha": "1d05db11e876946572c63cdc13df60b7faf7b63199592c0cebb854a25569883e",
+  "phone_live": "builds/arena_ai_simulator/index.html 11703732 B",
+  "backup": "index.html.bak_pre_g10",
+  "tools": [
+   "tools/patch_gate10.py",
+   "qa/qa_g10.js"
+  ]
+ }
+}

@@ -1,0 +1,76 @@
+{
+  "project": "Arena AI Simulator: Studio Life",
+  "version": "v1.0-alpha",
+  "test_cases": [
+    {
+      "id": "TC-SYS-001",
+      "category": "Engine & System",
+      "title": "WebGL 60FPS Frame Timing & Asset Loading",
+      "expected": "Canvas loads in < 2 seconds, runs at 60 FPS without memory leaks or blank fallbacks.",
+      "pass_criteria": "Zero unhandled JS exceptions in browser console."
+    },
+    {
+      "id": "TC-SYS-002",
+      "category": "Engine & System",
+      "title": "Auto-Pause Approval Gate State Management",
+      "expected": "Clicking PAUSE or reaching a Gate freezes simulation time, displays glowing PAUSED banner, and stops agent wander AI.",
+      "pass_criteria": "Game clock and agent movement stop completely when paused."
+    },
+    {
+      "id": "TC-ART-001",
+      "category": "Visuals & Sprites",
+      "title": "Pixel-Matrix Sprite Sheet Atlas Mapping",
+      "expected": "All 10 characters render with unique pixel clothing, hair, and accessories (Cody backward cap, Jax rubber duck, Pixel beret, Aria purple hair).",
+      "pass_criteria": "Zero raw vector/rectangle shape fallbacks in sprite rendering."
+    },
+    {
+      "id": "TC-ART-002",
+      "category": "Visuals & Sprites",
+      "title": "Top-Down 4-Direction Walking Leg Cycle Animation",
+      "expected": "Walking agents display 2-frame leg-stepping animation during movement.",
+      "pass_criteria": "Legs alternate positions during x/y displacement."
+    },
+    {
+      "id": "TC-ART-003",
+      "category": "Visuals & Sprites",
+      "title": "Comic Dialogue Speech Bubble Rendering",
+      "expected": "Comic speech bubbles render over active agent head with pointer tail and typewriter text.",
+      "pass_criteria": "Bubble remains within canvas boundaries and text wraps properly."
+    },
+    {
+      "id": "TC-AUD-001",
+      "category": "Audio & SFX",
+      "title": "16-Bit 44.1kHz Web Audio Synthesis & SFX Sync",
+      "expected": "Audio context initializes on mobile touch; SFX play in sync with dialogue blips, footstep, pool hit, and cheers.",
+      "pass_criteria": "Zero audio latency or distorted clipping."
+    },
+    {
+      "id": "TC-AUD-002",
+      "category": "Audio & SFX",
+      "title": "Beer Friday Dynamic Music Track Shift",
+      "expected": "Toggling Beer Friday Party Mode shifts theme to party rock MIDI and enables cheer SFX.",
+      "pass_criteria": "Party status badge pulses and audio synthesizer switches modes."
+    },
+    {
+      "id": "TC-CTRL-001",
+      "category": "Controls & Usability",
+      "title": "Mobile Multi-Touch D-Pad & Action Responsiveness",
+      "expected": "Touch D-Pad moves Boss avatar smoothly on S10+ touchscreen; action buttons (TALK, POOL, PARTY, PAUSE) trigger instant responses.",
+      "pass_criteria": "Zero touch input lag or sticky button state."
+    },
+    {
+      "id": "TC-GAME-001",
+      "category": "Gameplay & Minigames",
+      "title": "Interactive 9-Ball Billiards Physics Simulation",
+      "expected": "Tapping POOL shoots cue ball with friction deceleration and elastic cushion bank bounces.",
+      "pass_criteria": "Pool balls decelerate smoothly and bounce off felt borders."
+    },
+    {
+      "id": "TC-GAME-002",
+      "category": "Gameplay & Minigames",
+      "title": "Simulated 24-Hour Day/Night Clock Loop",
+      "expected": "Clock advances from 08:00 AM to 05:00 PM and loops back properly.",
+      "pass_criteria": "HUD clock text updates accurately."
+    }
+  ]
+}

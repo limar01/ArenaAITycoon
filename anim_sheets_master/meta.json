@@ -1,0 +1,132 @@
+{
+ "zillion": {
+  "file": "zillion_dir.png",
+  "cell": [
+   59,
+   102
+  ],
+  "rows": [
+   "down",
+   "up",
+   "left",
+   "right"
+  ]
+ },
+ "marcus": {
+  "file": "marcus_dir.png",
+  "cell": [
+   56,
+   102
+  ],
+  "rows": [
+   "down",
+   "up",
+   "left",
+   "right"
+  ]
+ },
+ "aria": {
+  "file": "aria_dir.png",
+  "cell": [
+   61,
+   102
+  ],
+  "rows": [
+   "down",
+   "up",
+   "left",
+   "right"
+  ]
+ },
+ "echo": {
+  "file": "echo_dir.png",
+  "cell": [
+   58,
+   102
+  ],
+  "rows": [
+   "down",
+   "up",
+   "left",
+   "right"
+  ]
+ },
+ "vortex": {
+  "file": "vortex_dir.png",
+  "cell": [
+   52,
+   102
+  ],
+  "rows": [
+   "down",
+   "up",
+   "left",
+   "right"
+  ]
+ },
+ "vanguard": {
+  "file": "vanguard_dir.png",
+  "cell": [
+   53,
+   102
+  ],
+  "rows": [
+   "down",
+   "up",
+   "left",
+   "right"
+  ]
+ },
+ "chronos": {
+  "file": "chronos_dir.png",
+  "cell": [
+   53,
+   102
+  ],
+  "rows": [
+   "down",
+   "up",
+   "left",
+   "right"
+  ]
+ },
+ "cody": {
+  "file": "cody_dir.png",
+  "cell": [
+   59,
+   102
+  ],
+  "rows": [
+   "down",
+   "up",
+   "left",
+   "right"
+  ]
+ },
+ "pixel": {
+  "file": "pixel_dir.png",
+  "cell": [
+   70,
+   102
+  ],
+  "rows": [
+   "down",
+   "up",
+   "left",
+   "right"
+  ]
+ },
+ "jax": {
+  "file": "jax_dir.png",
+  "cell": [
+   68,
+   102
+  ],
+  "rows": [
+   "down",
+   "up",
+   "left",
+   "right"
+  ]
+ }
+}

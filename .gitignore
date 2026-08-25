@@ -1,0 +1,26 @@
+# ARENA AI TYCOON .gitignore — keep the repo lean
+# (heavy archives & regenerable stuff stay OUT of git)
+
+# big backup archives (regenerable; git history IS the backup now)
+backups/
+*.tgz
+*.tar.gz
+savepoint_full.tgz
+
+# full workspace snapshots (redundant copies)
+workspace_snapshot_*/
+
+# build backup chain (versions/ dir holds the release history instead)
+builds/arena_ai_simulator/index.html.bak_*
+
+# logs & cache
+*.log
+ollama.log
+server.log
+__pycache__/
+*.pyc
+nohup.out
+
+# runtime
+*.swp
+.DS_Store
