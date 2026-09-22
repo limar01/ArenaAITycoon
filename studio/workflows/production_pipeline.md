@@ -1,0 +1,3 @@
+# WORKFLOW: PRODUCTION PIPELINE
+BOSS order → ZILLION (decompose, assign `AIT-*`) → CHRONOS (context inject, sprint record) → MARCUS/ARIA planning (when scope/design affected) → specialists CODY/PIXEL/ECHO (parallel iff disjoint files) → VORTEX (engine-level changes) → ZILLION integration (conflict sweep) → JAX QA (evidence) → VANGUARD review (independent; PASS/FAIL, ≤3 cycles) → CHRONOS state update (PROJECT_STATE/QA_STATE/RELEASE_STATE, checkpoint+push) → ZILLION Boss report (§30) → BOSS APPROVAL → RELEASE (G8).
+Holds: no gate auto-approval; no gameplay edits before migration-plan Boss review (Phase-4 hold).
