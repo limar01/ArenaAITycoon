@@ -3,6 +3,8 @@
 > Owner: **Boss** (final approval authority). Lead: **Zillion**. Team: 10 sub-agents.
 > Canonical copies: `~/projects/hermes_game_studio/docs/ARENA_AI_TYCOON_MEMORY_CORE.md` (phone) ↔ `/home/user/MEMORY_CORE.md` (sandbox). Machine snapshot: `memory_core.json`.
 
+> **📌 POINTER (2026-09-22):** This file is the **legacy append-only brain**. The new structured Chronos memory set lives in `memory/` (11 files: `PROJECT_STATE.md`, `GAME_DESIGN.md`, `ARCHITECTURE.md`, `ART_BIBLE.md`, `AUDIO_BIBLE.md`, `AI_PERSONAS.md`, `QA_STATE.md`, `DECISIONS.md`, `BACKLOG.md`, `CURRENT_SPRINT.md`, `RELEASE_STATE.md`). Locked decisions here (§3, §5x) remain authoritative until the new set is fully populated. This file is frozen for new writes — new state goes to the structured set.
+
 ---
 
 ## 0. ONE-LINE SUMMARY

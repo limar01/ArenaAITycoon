@@ -3,6 +3,8 @@
 Hermes Game Studio: Local Multi-Agent Game Development Framework
 Location: ~/projects/hermes_game_studio/studio.py
 Engine: Ollama (qwen2.5:1.5b) on Termux Android ARM64
+
+**LEGACY (2026-09-22):** This file is the original 5-agent Ollama pipeline. The new orchestration lives in `studio/workflows/` + Hermes profiles. Retired after migration Phase 5 verification.
 """
 
 import os

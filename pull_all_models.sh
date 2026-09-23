@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-cd ~/projects/hermes_game_studio
+cd ~/Projects/workspace/ArenaAITycoon
 echo "[1/3] Pulling qwen2.5-coder:1.5b for Cody & Vortex..." > model_pull_status.log
 ollama pull qwen2.5-coder:1.5b >> model_pull_status.log 2>&1
 

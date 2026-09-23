@@ -8,6 +8,8 @@ Features:
 - Keeper Chronos (Vector/Semantic Memory Indexing & Context Anchor)
 - Judge Vanguard (Commercial AAA Benchmark Matrix & Gauntlet Loop Engine)
 - Zero-Bypass Delegation Protocol & Automated QA Certification
+
+**LEGACY (2026-09-22):** This is the 9-agent engine with per-role model routing and the Chronos anchor pattern. The new orchestration lives in `studio/workflows/` + Hermes profiles. Retired after migration Phase 5 verification.
 """
 
 import os

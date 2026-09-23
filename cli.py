@@ -2,6 +2,8 @@
 """
 Hermes Game Studio Interactive CLI
 Run on Termux: python3 ~/projects/hermes_game_studio/cli.py
+
+**LEGACY (2026-09-22):** Original interactive console for the 5-agent pipeline. New orchestration lives in `studio/workflows/` + Hermes profiles. Retired after migration Phase 5 verification.
 """
 
 import sys
