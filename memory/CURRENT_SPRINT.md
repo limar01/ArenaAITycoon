@@ -19,6 +19,7 @@ Updated: 2026-09-23 (Zillion, Phase 4.6)
 - **Acceptance:** Agents visibly alive even when not actively walking (amplified idle animation per Gate 15 spec)
 - **Test:** Frame-step QA; visual regression
 - **Priority:** HIGH
+- **Status:** ✅ COMPLETE — Commit 382f59e. Idle breathing amplified 6x (0.5→3.0px) with per-agent phase offsets (breathSeed 0.0-10.9). Walk cycle uses Math.floor() for clean integer frame stepping, 9-frame dwell per pose. NPC parity maintained. docs/AIT-002_ANIMATION_ACCEPTANCE.md.
 
 ### AIT-003: Full mobile QA pass with evidence schema
 - **Owner:** Jax (adversarial QA) + Zillion (coordinate)
