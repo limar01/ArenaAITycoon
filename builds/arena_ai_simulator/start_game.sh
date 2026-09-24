@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
-cd ~/projects/hermes_game_studio/builds/castlevania_stage1
+cd ~/Projects/workspace/ArenaAITycoon/builds/arena_ai_simulator
 python3 server.py

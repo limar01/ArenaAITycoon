@@ -2,7 +2,7 @@
 import os
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 
-DIR = os.path.expanduser("~/projects/hermes_game_studio/builds/arena_ai_simulator")
+DIR = os.path.expanduser("~/Projects/workspace/ArenaAITycoon/builds/arena_ai_simulator")
 os.chdir(DIR)
 
 class MyHandler(SimpleHTTPRequestHandler):
