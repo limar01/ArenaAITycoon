@@ -1225,18 +1225,18 @@ function findPath(sx, sy, tx, ty) {
 }
 // ===== END WALL COLLISION =====
 
-// 10 Proportional Studio Agents with Directional Walking State
+// 10 Proportional Studio Agents with Directional Walking State & Idle Breathing Seeds
 const agents = [
-  { id: 'zillion', name: 'Zillion', role: 'Tech Director', wp: 'exec_hq', targetWp: 'central_cross_1', x: 350, y: 420, speed: 1.1, waitTimer: 0, path: null, facing: 'down', walkFrame: 0, energy: 90, focus: 95, happiness: 92, phrase: "Proportional sprites & 4-direction directional walk cycles deployed!" },
-  { id: 'marcus', name: 'Marcus', role: 'Producer', wp: 'war_room_gate', targetWp: 'pantry_east_gate', x: 880, y: 600, speed: 1.0, waitTimer: 0, facing: 'right', walkFrame: 0, energy: 85, focus: 90, happiness: 98, phrase: "Beer Friday Party is LIVE! Sprint velocity is at 100%!" },
-  { id: 'aria', name: 'Aria', role: 'Systems Designer', wp: 'central_cross_2', targetWp: 'dev_core_north_2', x: 880, y: 420, speed: 0.95, waitTimer: 0, facing: 'up', walkFrame: 0, energy: 80, focus: 96, happiness: 88, phrase: "Tiled level maps and GDD balance trees are fully synced!" },
-  { id: 'cody', name: 'Cody', role: 'Lead Programmer', wp: 'server_room', targetWp: 'dev_core_north', x: 290, y: 200, speed: 1.15, waitTimer: 0, facing: 'right', walkFrame: 0, energy: 75, focus: 98, happiness: 85, phrase: "qwen2.5-coder code synthesis ready. 60 FPS verified!" },
-  { id: 'pixel', name: 'Pixel', role: 'Graphic Artist', wp: 'central_cross_3', targetWp: 'dev_core_north_3', x: 1080, y: 420, speed: 1.0, waitTimer: 0, facing: 'up', walkFrame: 0, energy: 88, focus: 92, happiness: 90, phrase: "HD 16-bit PNG character sprite atlases rendered with 0 square glitch!" },
-  { id: 'echo', name: 'Echo', role: 'Audio Director', wp: 'dev_core_north_3', targetWp: 'pantry_east_gate', x: 1080, y: 200, speed: 0.95, waitTimer: 0, facing: 'down', walkFrame: 0, energy: 82, focus: 88, happiness: 94, phrase: "44.1kHz stereo Web Audio MIDI OST synthesizer playing!" },
-  { id: 'vortex', name: 'Vortex', role: 'Shader Dev', wp: 'west_corridor_1', targetWp: 'west_corridor_bot', x: 480, y: 320, speed: 1.05, waitTimer: 0, facing: 'down', walkFrame: 0, energy: 78, focus: 94, happiness: 86, phrase: "GLSL fragment shaders and GPU particles loaded!" },
-  { id: 'jax', name: 'Jax', role: 'QA Auditor', wp: 'central_cross_3', targetWp: 'war_room_gate', x: 1080, y: 420, speed: 1.0, waitTimer: 0, facing: 'left', walkFrame: 0, energy: 92, focus: 95, happiness: 89, phrase: "Jax rubber duck 🦆 & DeepSeek-R1 QA test suite passed 100%!" },
-  { id: 'vanguard', name: 'Judge Vanguard', role: 'AAA Quality Judge', wp: 'central_plaza', targetWp: 'war_room_gate', x: 680, y: 600, speed: 0.9, waitTimer: 0, facing: 'right', walkFrame: 0, energy: 95, focus: 99, happiness: 91, phrase: "AAA Commercial Benchmark: Directional Walk PASSED!" },
-  { id: 'chronos', name: 'Keeper Chronos', role: 'Memory Anchor', wp: 'lounge_gate', targetWp: 'lounge_pool_area', x: 480, y: 630, speed: 0.95, waitTimer: 0, facing: 'down', walkFrame: 0, energy: 94, focus: 97, happiness: 93, phrase: "Vector context memory anchored in persistent phone storage!" }
+  { id: 'zillion', name: 'Zillion', role: 'Tech Director', wp: 'exec_hq', targetWp: 'central_cross_1', x: 350, y: 420, speed: 1.1, waitTimer: 0, path: null, facing: 'down', walkFrame: 0, breathSeed: 0.0, energy: 90, focus: 95, happiness: 92, phrase: "Proportional sprites & 4-direction directional walk cycles deployed!" },
+  { id: 'marcus', name: 'Marcus', role: 'Producer', wp: 'war_room_gate', targetWp: 'pantry_east_gate', x: 880, y: 600, speed: 1.0, waitTimer: 0, facing: 'right', walkFrame: 0, breathSeed: 1.2, energy: 85, focus: 90, happiness: 98, phrase: "Beer Friday Party is LIVE! Sprint velocity is at 100%!" },
+  { id: 'aria', name: 'Aria', role: 'Systems Designer', wp: 'central_cross_2', targetWp: 'dev_core_north_2', x: 880, y: 420, speed: 0.95, waitTimer: 0, facing: 'up', walkFrame: 0, breathSeed: 2.5, energy: 80, focus: 96, happiness: 88, phrase: "Tiled level maps and GDD balance trees are fully synced!" },
+  { id: 'cody', name: 'Cody', role: 'Lead Programmer', wp: 'server_room', targetWp: 'dev_core_north', x: 290, y: 200, speed: 1.15, waitTimer: 0, facing: 'right', walkFrame: 0, breathSeed: 3.7, energy: 75, focus: 98, happiness: 85, phrase: "qwen2.5-coder code synthesis ready. 60 FPS verified!" },
+  { id: 'pixel', name: 'Pixel', role: 'Graphic Artist', wp: 'central_cross_3', targetWp: 'dev_core_north_3', x: 1080, y: 420, speed: 1.0, waitTimer: 0, facing: 'up', walkFrame: 0, breathSeed: 4.9, energy: 88, focus: 92, happiness: 90, phrase: "HD 16-bit PNG character sprite atlases rendered with 0 square glitch!" },
+  { id: 'echo', name: 'Echo', role: 'Audio Director', wp: 'dev_core_north_3', targetWp: 'pantry_east_gate', x: 1080, y: 200, speed: 0.95, waitTimer: 0, facing: 'down', walkFrame: 0, breathSeed: 6.1, energy: 82, focus: 88, happiness: 94, phrase: "44.1kHz stereo Web Audio MIDI OST synthesizer playing!" },
+  { id: 'vortex', name: 'Vortex', role: 'Shader Dev', wp: 'west_corridor_1', targetWp: 'west_corridor_bot', x: 480, y: 320, speed: 1.05, waitTimer: 0, facing: 'down', walkFrame: 0, breathSeed: 7.3, energy: 78, focus: 94, happiness: 86, phrase: "GLSL fragment shaders and GPU particles loaded!" },
+  { id: 'jax', name: 'Jax', role: 'QA Auditor', wp: 'central_cross_3', targetWp: 'war_room_gate', x: 1080, y: 420, speed: 1.0, waitTimer: 0, facing: 'left', walkFrame: 0, breathSeed: 8.5, energy: 92, focus: 95, happiness: 89, phrase: "Jax rubber duck 🦆 & DeepSeek-R1 QA test suite passed 100%!" },
+  { id: 'vanguard', name: 'Judge Vanguard', role: 'AAA Quality Judge', wp: 'central_plaza', targetWp: 'war_room_gate', x: 680, y: 600, speed: 0.9, waitTimer: 0, facing: 'right', walkFrame: 0, breathSeed: 9.7, energy: 95, focus: 99, happiness: 91, phrase: "AAA Commercial Benchmark: Directional Walk PASSED!" },
+  { id: 'chronos', name: 'Keeper Chronos', role: 'Memory Anchor', wp: 'lounge_gate', targetWp: 'lounge_pool_area', x: 480, y: 630, speed: 0.95, waitTimer: 0, facing: 'down', walkFrame: 0, breathSeed: 10.9, energy: 94, focus: 97, happiness: 93, phrase: "Vector context memory anchored in persistent phone storage!" }
 ];
 
 let currentAgentIdx = 0;
@@ -1703,19 +1703,24 @@ function render() {
         const fw = dwAll / 3;
         const fh = dhAll / 4;
         const moving = !!a.isMoving;
-        // frame 0 = stand/idle; frames 1-2 = walk steps (full 0->1->2 cycle = visible legs)
-        const frame = moving ? (a.walkFrame % 3) : 0;
+        // frame 0 = contact pose; frames 1-2 = walk steps; fractional walkFrame for smooth transition
+        const fwalk = moving ? Math.floor(a.walkFrame) % 3 : 0;
+        const frame = fwalk;
         const sx = frame * fw;
         const sy = row * fh;
+        // grounded feet; breathing idle; step bounce + tilt + squash/stretch when walking
+        const stepPh = (a.walkFrame % 2) === 0 ? -1 : 1;
+        // Amplified idle breathing (per-agent phase offset so they don't breathe in unison)
+        const breathPhase = a.breathSeed !== undefined ? a.breathSeed : (a.id.length * 7.3 + a.x * 0.03) % (Math.PI * 2);
+        const bob = moving
+          ? stepPh * 1.5
+          : Math.sin(stepFrame * 0.04 + breathPhase) * 3.0;
+        const tilt = moving ? stepPh * 0.07 : Math.sin(stepFrame * 0.02 + a.x) * 0.012;
+        const sq = moving ? 1 + stepPh * 0.03 : 1;
         const targetH = 34;
         const scaleF = targetH / fh;
         const dw = fw * scaleF;
         const dh = fh * scaleF;
-        // grounded feet; breathing idle; step bounce + tilt + squash/stretch when walking
-        const stepPh = (a.walkFrame % 2) === 0 ? -1 : 1;
-        const bob = moving ? stepPh * 1.5 : Math.sin(stepFrame * 0.03 + a.x * 0.05) * 0.5;
-        const tilt = moving ? stepPh * 0.07 : Math.sin(stepFrame * 0.02 + a.x) * 0.012;
-        const sq = moving ? 1 + stepPh * 0.03 : 1;
 
         ctx.save();
         ctx.translate(a.x, a.y);
