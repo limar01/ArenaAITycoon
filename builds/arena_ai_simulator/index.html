@@ -440,6 +440,33 @@
   }
   .zone-tag:hover { background: #252544; border-color: #ffcc00; color: #ffcc00; }
 </style>
+<style id="g17-style">
+/* G17 ARENA ORBIT — AI-CHAT glass card + edge chevrons */
+#g17-chat-fab{position:fixed;right:16px;bottom:64px;width:48px;height:48px;border-radius:24px;background:rgba(30,32,48,.82);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;z-index:9000;box-shadow:0 4px 16px rgba(0,0,0,.4);user-select:none}
+#g17-chat-card{position:fixed;right:16px;bottom:64px;width:340px;max-width:92vw;height:46vh;min-height:260px;background:rgba(30,32,48,.82);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.22);border-radius:16px;display:none;flex-direction:column;z-index:9001;box-shadow:0 8px 32px rgba(0,0,0,.5);overflow:hidden;font-family:monospace}
+#g17-chat-card.open{display:flex}
+#chat-header{display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.12);cursor:move;user-select:none;color:#cfd3e8;font-size:12px}
+#chat-header b{color:#ffd166;letter-spacing:1px;flex:1}
+#chat-header button{width:22px;height:22px;border-radius:6px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.25);color:#fff;cursor:pointer;font-size:13px;line-height:1}
+#chat-offline-strip{display:none;align-items:center;justify-content:center;background:#8a5a1f;color:#ffe9c9;font-size:11px;padding:4px}
+#chat-feed{flex:1;overflow-y:auto;padding:10px;font-size:12px;line-height:1.45;color:#e8eaf6}
+#chat-feed::-webkit-scrollbar{width:6px}
+#chat-feed::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:3px}
+.chat-b{margin-bottom:8px;padding:6px 8px;border-radius:10px;background:rgba(255,255,255,.05);word-wrap:break-word}
+.chat-b.boss{background:rgba(255,209,102,.12)}
+.chat-b.ai{background:rgba(77,216,255,.10)}
+.chat-b.event{color:#9aa0ad;font-size:11px}
+.chat-ts{color:#7d8299;font-size:10px;margin-right:4px}
+#chat-input-row{display:flex;gap:8px;padding:8px;border-top:1px solid rgba(255,255,255,.12);align-items:center}
+#chat-input{flex:1;height:40px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.2);border-radius:10px;color:#fff;padding:0 10px;font:13px monospace;outline:none}
+#chat-input:focus{border-color:rgba(77,216,255,.5)}
+#chat-input:disabled{opacity:.5}
+#chat-send{width:44px;height:44px;border-radius:10px;border:1px solid rgba(255,209,102,.4);background:rgba(255,209,102,.15);color:#ffd166;font-size:18px;cursor:pointer}
+.g17-chev{position:fixed;width:40px;height:40px;z-index:8999;background:rgba(30,32,48,.7);border:1px solid rgba(255,255,255,.3);border-radius:50%;color:#fff;font-size:16px;cursor:pointer;display:none;align-items:center;justify-content:center}
+.g17-chev.on{display:flex}
+body.g17-reflow #gameCanvas{opacity:.7;transition:opacity .25s}
+
+</style>
 </head>
 <body>
 
@@ -1168,10 +1195,57 @@ const WALL_GRID = [
   "................................................................................",
 ];
 const GRID_CW = 20, GRID_CH = 20, GRID_COLS = 80, GRID_ROWS = 45;
+const FURNITURE_GRID = [
+    "................................................................................",
+    "................................................................................",
+    "................................................................................",
+    "...............................##################..............................",
+    "...............................##################..............................",
+    "...............................##################..............................",
+    "...............................##################.................#####.........",
+    "...............................##################.................#####.........",
+    ".........####.....................................................#####.........",
+    "...####..####.....................................................#####...####..",
+    "...####..####.....................................................#####...####..",
+    "...####..####.............................................................####..",
+    "...####.......#######.....................................................####..",
+    "..............#######...........................................................",
+    "..............#######...........................................................",
+    "..............#########.........................................................",
+    "..............#########.........................................................",
+    ".....................##.....................................................####",
+    ".....................##.....................................................####",
+    "............................................................................####",
+    "................................................................###.........####",
+    "................................................................###.........####",
+    "................................................................###.###.....####",
+    "................................................................###.###.....####",
+    "....................................................................###.###.....",
+    "....................................................................###.###.....",
+    "........................................................................###.....",
+    "........................................................................###.....",
+    "...############.................................................................",
+    "...############.................................................................",
+    "................................................................................",
+    "...#####..........................................................####..........",
+    "...#####..........................................................####..........",
+    "...#####.#####....................................................####.####.....",
+    ".........#####...........................................#############.#######..",
+    ".........#####...........................................##########....#########",
+    "...................................##############........##########....#########",
+    "...................................##############........#############.....###..",
+    "...#####...........................##############.................####.....###..",
+    "...#####...........................##############.................####..........",
+    "...#####.#####....................................................####..........",
+    ".........#####...........................................###......####..####....",
+    ".........#####...........................................###....####....####....",
+    ".........................................................###....####....####....",
+    "................................................................####............"
+  ];
 
 function gridBlocked(cx, cy) {
   if (cx < 0 || cx >= GRID_COLS || cy < 0 || cy >= GRID_ROWS) return true;
-  return WALL_GRID[cy][cx] === '#';
+  return WALL_GRID[cy][cx] === '#' || FURNITURE_GRID[cy][cx] === '#';
 }
 
 function findPath(sx, sy, tx, ty) {
@@ -1225,18 +1299,18 @@ function findPath(sx, sy, tx, ty) {
 }
 // ===== END WALL COLLISION =====
 
-// 10 Proportional Studio Agents with Directional Walking State & Idle Breathing Seeds
+// 10 Proportional Studio Agents with Directional Walking State
 const agents = [
-  { id: 'zillion', name: 'Zillion', role: 'Tech Director', wp: 'exec_hq', targetWp: 'central_cross_1', x: 350, y: 420, speed: 1.1, waitTimer: 0, path: null, facing: 'down', walkFrame: 0, breathSeed: 0.0, energy: 90, focus: 95, happiness: 92, phrase: "Proportional sprites & 4-direction directional walk cycles deployed!" },
-  { id: 'marcus', name: 'Marcus', role: 'Producer', wp: 'war_room_gate', targetWp: 'pantry_east_gate', x: 880, y: 600, speed: 1.0, waitTimer: 0, facing: 'right', walkFrame: 0, breathSeed: 1.2, energy: 85, focus: 90, happiness: 98, phrase: "Beer Friday Party is LIVE! Sprint velocity is at 100%!" },
-  { id: 'aria', name: 'Aria', role: 'Systems Designer', wp: 'central_cross_2', targetWp: 'dev_core_north_2', x: 880, y: 420, speed: 0.95, waitTimer: 0, facing: 'up', walkFrame: 0, breathSeed: 2.5, energy: 80, focus: 96, happiness: 88, phrase: "Tiled level maps and GDD balance trees are fully synced!" },
-  { id: 'cody', name: 'Cody', role: 'Lead Programmer', wp: 'server_room', targetWp: 'dev_core_north', x: 290, y: 200, speed: 1.15, waitTimer: 0, facing: 'right', walkFrame: 0, breathSeed: 3.7, energy: 75, focus: 98, happiness: 85, phrase: "qwen2.5-coder code synthesis ready. 60 FPS verified!" },
-  { id: 'pixel', name: 'Pixel', role: 'Graphic Artist', wp: 'central_cross_3', targetWp: 'dev_core_north_3', x: 1080, y: 420, speed: 1.0, waitTimer: 0, facing: 'up', walkFrame: 0, breathSeed: 4.9, energy: 88, focus: 92, happiness: 90, phrase: "HD 16-bit PNG character sprite atlases rendered with 0 square glitch!" },
-  { id: 'echo', name: 'Echo', role: 'Audio Director', wp: 'dev_core_north_3', targetWp: 'pantry_east_gate', x: 1080, y: 200, speed: 0.95, waitTimer: 0, facing: 'down', walkFrame: 0, breathSeed: 6.1, energy: 82, focus: 88, happiness: 94, phrase: "44.1kHz stereo Web Audio MIDI OST synthesizer playing!" },
-  { id: 'vortex', name: 'Vortex', role: 'Shader Dev', wp: 'west_corridor_1', targetWp: 'west_corridor_bot', x: 480, y: 320, speed: 1.05, waitTimer: 0, facing: 'down', walkFrame: 0, breathSeed: 7.3, energy: 78, focus: 94, happiness: 86, phrase: "GLSL fragment shaders and GPU particles loaded!" },
-  { id: 'jax', name: 'Jax', role: 'QA Auditor', wp: 'central_cross_3', targetWp: 'war_room_gate', x: 1080, y: 420, speed: 1.0, waitTimer: 0, facing: 'left', walkFrame: 0, breathSeed: 8.5, energy: 92, focus: 95, happiness: 89, phrase: "Jax rubber duck 🦆 & DeepSeek-R1 QA test suite passed 100%!" },
-  { id: 'vanguard', name: 'Judge Vanguard', role: 'AAA Quality Judge', wp: 'central_plaza', targetWp: 'war_room_gate', x: 680, y: 600, speed: 0.9, waitTimer: 0, facing: 'right', walkFrame: 0, breathSeed: 9.7, energy: 95, focus: 99, happiness: 91, phrase: "AAA Commercial Benchmark: Directional Walk PASSED!" },
-  { id: 'chronos', name: 'Keeper Chronos', role: 'Memory Anchor', wp: 'lounge_gate', targetWp: 'lounge_pool_area', x: 480, y: 630, speed: 0.95, waitTimer: 0, facing: 'down', walkFrame: 0, breathSeed: 10.9, energy: 94, focus: 97, happiness: 93, phrase: "Vector context memory anchored in persistent phone storage!" }
+  { id: 'zillion', name: 'Zillion', role: 'Tech Director', wp: 'exec_hq', targetWp: 'central_cross_1', x: 350, y: 420, speed: 1.1, waitTimer: 0, path: null, facing: 'down', walkFrame: 0, energy: 90, focus: 95, happiness: 92, phrase: "Proportional sprites & 4-direction directional walk cycles deployed!" },
+  { id: 'marcus', name: 'Marcus', role: 'Producer', wp: 'war_room_gate', targetWp: 'pantry_east_gate', x: 880, y: 600, speed: 1.0, waitTimer: 0, facing: 'right', walkFrame: 0, energy: 85, focus: 90, happiness: 98, phrase: "Beer Friday Party is LIVE! Sprint velocity is at 100%!" },
+  { id: 'aria', name: 'Aria', role: 'Systems Designer', wp: 'central_cross_2', targetWp: 'dev_core_north_2', x: 880, y: 420, speed: 0.95, waitTimer: 0, facing: 'up', walkFrame: 0, energy: 80, focus: 96, happiness: 88, phrase: "Tiled level maps and GDD balance trees are fully synced!" },
+  { id: 'cody', name: 'Cody', role: 'Lead Programmer', wp: 'server_room', targetWp: 'dev_core_north', x: 290, y: 200, speed: 1.15, waitTimer: 0, facing: 'right', walkFrame: 0, energy: 75, focus: 98, happiness: 85, phrase: "qwen2.5-coder code synthesis ready. 60 FPS verified!" },
+  { id: 'pixel', name: 'Pixel', role: 'Graphic Artist', wp: 'central_cross_3', targetWp: 'dev_core_north_3', x: 1080, y: 420, speed: 1.0, waitTimer: 0, facing: 'up', walkFrame: 0, energy: 88, focus: 92, happiness: 90, phrase: "HD 16-bit PNG character sprite atlases rendered with 0 square glitch!" },
+  { id: 'echo', name: 'Echo', role: 'Audio Director', wp: 'dev_core_north_3', targetWp: 'pantry_east_gate', x: 1080, y: 200, speed: 0.95, waitTimer: 0, facing: 'down', walkFrame: 0, energy: 82, focus: 88, happiness: 94, phrase: "44.1kHz stereo Web Audio MIDI OST synthesizer playing!" },
+  { id: 'vortex', name: 'Vortex', role: 'Shader Dev', wp: 'west_corridor_1', targetWp: 'west_corridor_bot', x: 480, y: 320, speed: 1.05, waitTimer: 0, facing: 'down', walkFrame: 0, energy: 78, focus: 94, happiness: 86, phrase: "GLSL fragment shaders and GPU particles loaded!" },
+  { id: 'jax', name: 'Jax', role: 'QA Auditor', wp: 'central_cross_3', targetWp: 'war_room_gate', x: 1080, y: 420, speed: 1.0, waitTimer: 0, facing: 'left', walkFrame: 0, energy: 92, focus: 95, happiness: 89, phrase: "Jax rubber duck 🦆 & DeepSeek-R1 QA test suite passed 100%!" },
+  { id: 'vanguard', name: 'Judge Vanguard', role: 'AAA Quality Judge', wp: 'central_plaza', targetWp: 'war_room_gate', x: 680, y: 600, speed: 0.9, waitTimer: 0, facing: 'right', walkFrame: 0, energy: 95, focus: 99, happiness: 91, phrase: "AAA Commercial Benchmark: Directional Walk PASSED!" },
+  { id: 'chronos', name: 'Keeper Chronos', role: 'Memory Anchor', wp: 'lounge_gate', targetWp: 'lounge_pool_area', x: 480, y: 630, speed: 0.95, waitTimer: 0, facing: 'down', walkFrame: 0, energy: 94, focus: 97, happiness: 93, phrase: "Vector context memory anchored in persistent phone storage!" }
 ];
 
 let currentAgentIdx = 0;
@@ -1703,24 +1777,19 @@ function render() {
         const fw = dwAll / 3;
         const fh = dhAll / 4;
         const moving = !!a.isMoving;
-        // frame 0 = contact pose; frames 1-2 = walk steps; fractional walkFrame for smooth transition
-        const fwalk = moving ? Math.floor(a.walkFrame) % 3 : 0;
-        const frame = fwalk;
+        // frame 0 = stand/idle; frames 1-2 = walk steps (full 0->1->2 cycle = visible legs)
+        const frame = moving ? (a.walkFrame % 3) : 0;
         const sx = frame * fw;
         const sy = row * fh;
-        // grounded feet; breathing idle; step bounce + tilt + squash/stretch when walking
-        const stepPh = (a.walkFrame % 2) === 0 ? -1 : 1;
-        // Amplified idle breathing (per-agent phase offset so they don't breathe in unison)
-        const breathPhase = a.breathSeed !== undefined ? a.breathSeed : (a.id.length * 7.3 + a.x * 0.03) % (Math.PI * 2);
-        const bob = moving
-          ? stepPh * 1.5
-          : Math.sin(stepFrame * 0.04 + breathPhase) * 3.0;
-        const tilt = moving ? stepPh * 0.07 : Math.sin(stepFrame * 0.02 + a.x) * 0.012;
-        const sq = moving ? 1 + stepPh * 0.03 : 1;
         const targetH = 34;
         const scaleF = targetH / fh;
         const dw = fw * scaleF;
         const dh = fh * scaleF;
+        // grounded feet; breathing idle; step bounce + tilt + squash/stretch when walking
+        const stepPh = (a.walkFrame % 2) === 0 ? -1 : 1;
+        const bob = moving ? stepPh * 1.5 : Math.sin(stepFrame * 0.03 + a.x * 0.05) * 0.5;
+        const tilt = moving ? stepPh * 0.07 : Math.sin(stepFrame * 0.02 + a.x) * 0.012;
+        const sq = moving ? 1 + stepPh * 0.03 : 1;
 
         ctx.save();
         ctx.translate(a.x, a.y);
@@ -2187,6 +2256,1428 @@ if ('serviceWorker' in navigator) {
   document.addEventListener('DOMContentLoaded', applyFit);
   setTimeout(applyFit, 300);
   setTimeout(applyFit, 1200);
+})();
+</script>
+
+<!-- ==== QA VISION (Jax eyes) ==== -->
+<style>
+  #qaVisionBtn {
+    position: fixed; bottom: 14px; right: 14px; z-index: 9999;
+    background: #ff5d5d; color: #fff; border: none; border-radius: 10px;
+    padding: 10px 14px; font-size: 13px; font-weight: bold; cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,.5); opacity:.95;
+  }
+  #qaVisionBtn:disabled { background:#888; cursor: wait; }
+  #qaVisionPanel {
+    position: fixed; right: 14px; bottom: 62px; z-index: 9999;
+    width: 300px; max-height: 45vh; overflow:auto;
+    background: #0f0f1a; color:#e8e8ff; border:1px solid #ff5d5d; border-radius:10px;
+    padding:12px; font-size:12px; line-height:1.5; font-family:monospace;
+    display:none; box-shadow:0 4px 16px rgba(0,0,0,.6);
+  }
+  #qaVisionPanel h4 { margin:0 0 8px; color:#ff9d9d; font-size:13px; }
+  #qaVisionPanel .close { float:right; cursor:pointer; color:#999; }
+  #qaVisionThumb { max-width:100%; border-radius:6px; margin:6px 0; }
+</style>
+<button id="qaVisionBtn" title="Jax (QA) vision check">🔍 QA Vision</button>
+<div id="qaVisionPanel">
+  <span class="close" onclick="document.getElementById('qaVisionPanel').style.display='none'">✕</span>
+  <h4>👁️ Jax — QA Vision</h4>
+  <img id="qaVisionThumb" alt="screenshot" style="display:none">
+  <div id="qaVisionOut">Press "🔍 QA Vision" to capture the screen.</div>
+</div>
+<script>
+(function(){
+  var HERMES = 'http://127.0.0.1:11434';   // Hermes brain (proxy to vision on-demand)
+  var btn = document.getElementById('qaVisionBtn');
+  var panel = document.getElementById('qaVisionPanel');
+  var out = document.getElementById('qaVisionOut');
+  var thumb = document.getElementById('qaVisionThumb');
+  btn.addEventListener('click', function(){
+    panel.style.display = 'block';
+    btn.disabled = true;
+    out.textContent = 'Capturing screen...';
+    var c = document.getElementById('gameCanvas');
+    if (!c) { out.textContent = 'ERROR: no gameCanvas'; btn.disabled=false; return; }
+    var scale = 0.5;
+    var tmp = document.createElement('canvas');
+    tmp.width = Math.round(c.width*scale);
+    tmp.height = Math.round(c.height*scale);
+    tmp.getContext('2d').drawImage(c, 0,0, tmp.width, tmp.height);
+    var dataUrl = tmp.toDataURL('image/png');
+    thumb.src = dataUrl; thumb.style.display='block';
+    out.textContent = 'Jax analyzing screen with Qwen-VL... (starts vision, may take 1-3 min on CPU)';
+    // Step 1: ask Hermes to start vision on-demand
+    fetch(HERMES + '/api/start_vision', {method:'POST'})
+    .then(function(r){ return r.json(); })
+    .then(function(s){
+      out.textContent = 'Jax analyzing screen... (vision loading, ~1-2 min)';
+      // Step 2: proxy vision analysis through Hermes (it waits for vision load)
+      return fetch(HERMES + '/api/vision', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          model: 'qwen2.5vl',
+          messages: [{ role:'user', content:[
+            { type:'image_url', image_url:{ url: dataUrl } },
+            { type:'text', text:'You are Jax, a ruthless QA bug hunter for ARENA AI TYCOON. Analyze this game screenshot. Describe what you see and list any visible visual bugs, UI issues, or anomalies. Be specific and concise.' }
+          ]}],
+          max_tokens: 150, temperature: 0.3, stream: false
+        })
+      });
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(j){
+      btn.disabled = false;
+      var txt = (j && j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content) || (j && j.message && j.message.content) || (j && j.error ? 'ERROR: '+j.error : 'No response');
+      out.textContent = txt;
+    })
+    .catch(function(e){
+      btn.disabled = false;
+      out.textContent = 'Vision error: '+e;
+    });
+  });
+})();
+</script>
+
+<!-- G17 ARENA ORBIT DOM (AI-CHAT glass card + edge chevrons) -->
+<div id="g17-chat-fab" title="AI-CHAT">💬</div>
+<div id="g17-chat-card">
+  <div id="chat-header"><span>⠿</span><b>AI-CHAT</b><button id="chat-min" title="Minimize">–</button><button id="chat-x" title="Close">×</button></div>
+  <div id="chat-offline-strip">AI offline — connect gateway (8090)</div>
+  <div id="chat-feed"></div>
+  <div id="chat-input-row"><input id="chat-input" placeholder="Mag-chat kay Zillion..." autocomplete="off"><button id="chat-send" title="Send">➤</button></div>
+</div>
+<button class="g17-chev" id="chev-L" style="left:8px;top:50%;margin-top:-20px" title="Pan left">◀</button>
+<button class="g17-chev" id="chev-R" style="right:8px;top:50%;margin-top:-20px" title="Pan right">▶</button>
+<button class="g17-chev" id="chev-T" style="left:50%;top:8px;margin-left:-20px" title="Pan up">▲</button>
+<button class="g17-chev" id="chev-B" style="left:50%;bottom:8px;margin-left:-20px" title="Pan down">▼</button>
+
+<script id="g17-orbit" data-marker="G17-ORBIT-RUNTIME">
+// ARENA ORBIT G17 runtime — injected 2026-08-30 by Zillion (cloud brain)
+/* ============================================================
+   ARENA AI TYCOON — GATE 17.3 — DUAL-MANIFEST REFLOW ENGINE
+   layout_manifests.js  (ARENA ORBIT master, MEMORY_CORE §26/§29)
+   Author: Zillion (cloud brain) — per GATE17_I_FINAL_SPEC §1/§2/§7
+   v2: FIXED after structural QA (overlaps + dead-space) 2026-08-30
+   ============================================================ */
+
+/* ---------- CHUNK MASTER (28px tiles; x,y in PIXELS in manifests) ---------- */
+const ORBIT_CHUNKS = {
+  garden_core:      { w:20, h:14, anims:{koi:2},      coll: [[0,0,20,1],[0,13,20,1],[0,0,1,14],[19,0,1,14],[6,5,1,4],[13,5,1,4],[9,6,2,1],[10,7,1,1]] },
+  corridor_seg:     { w: 4, h: 4, anims:{},            coll: [[0,0,4,1],[0,3,4,1],[0,0,1,4],[3,0,1,4]] },
+  corridor_corner:  { w: 4, h: 4, anims:{},            coll: [[0,0,4,1],[0,3,4,1],[0,0,1,4],[3,0,1,4]] },
+  corridor_tee:     { w: 4, h: 4, anims:{},            coll: [[0,0,4,1],[0,3,4,1],[0,0,1,4],[3,0,1,4]] },
+  office_dev:       { w:14, h:10, anims:{},            coll: [[0,0,14,1],[0,9,14,1],[0,0,1,10],[13,0,1,10],[1,1,3,2],[5,1,3,2],[9,1,3,2],[1,6,3,2],[5,6,3,2],[9,6,3,2],[12,1,1,6]] },
+  office_design:    { w:12, h:10, anims:{},            coll: [[0,0,12,1],[0,9,12,1],[0,0,1,10],[11,0,1,10],[1,1,2,3],[4,1,2,3],[7,1,3,2],[1,6,3,3],[8,6,3,3]] },
+  server_glass:     { w:14, h: 8, anims:{led:4},       coll: [[0,0,14,1],[0,7,14,1],[0,0,1,8],[13,0,1,8],[1,1,2,5],[4,1,2,5],[7,1,2,5],[10,1,2,5]] },
+  audio_lab:        { w:10, h: 8, anims:{},            coll: [[0,0,10,1],[0,7,10,1],[0,0,1,8],[9,0,1,8],[1,1,3,2],[5,1,3,2],[1,4,2,3],[7,4,2,3]] },
+  arcade_billiards: { w:12, h:10, anims:{screen:4},    coll: [[0,0,12,1],[0,9,12,1],[0,0,1,10],[11,0,1,10],[1,1,2,3],[4,1,2,3],[2,4,4,4],[9,1,2,2]] },
+  cafe:             { w:12, h: 8, anims:{},            coll: [[0,0,12,1],[0,7,12,1],[0,0,1,8],[11,0,1,8],[1,1,2,2],[4,1,2,2],[8,1,2,2],[2,4,3,3]] },
+  reception:        { w:16, h: 6, anims:{neon:2},      coll: [[0,0,16,1],[0,5,16,1],[0,0,1,6],[15,0,1,6],[1,1,3,1],[1,2,3,1],[11,1,3,1],[11,2,3,1]] },
+  fitness:          { w: 6, h: 4, anims:{},            coll: [[0,0,6,1],[0,3,6,1],[0,0,1,4],[5,0,1,4],[1,1,2,2],[4,1,1,2]] }
+};
+
+/* ---------- THE THREE MANIFESTS (same chunks, x/y in PIXELS) ---------- */
+const ORBIT_MANIFESTS = {
+  /* PORTRAIT 600x800 — vertical stack, centered horizontally, world 1440x1920 */
+  portrait: { orient:"portrait", viewport:[600,800], world:[1440,1920],
+    chunks: [
+      {id:"arcade_billiards", x:552, y:0},    // 12x10 (336x280)
+      {id:"office_dev",       x:524, y:280},  // 14x10 (392x280)
+      {id:"corridor_seg",     x:664, y:560},  // 4x4
+      {id:"corridor_seg",     x:664, y:672},
+      {id:"office_design",    x:552, y:784},  // 12x10
+      {id:"garden_core",      x:440, y:1064}, // 20x14 (560x392)
+      {id:"cafe",             x:552, y:1456}, // 12x8
+      {id:"reception",        x:496, y:1680}  // 16x6 (448x168) -> ends 1848
+    ],
+    loops: { J:[[560,1220],[560,1400],[900,1400],[900,1220]], H:[[700,610],[700,740],[820,740],[820,610]] },
+    spawn: {x:720, y:1260}, camAnchor:{x:720, y:1300} },
+
+  /* LANDSCAPE 800x600 — ring: garden center, rooms hug it, world 2560x1440 */
+  landscape: { orient:"landscape", viewport:[800,600], world:[2560,1440],
+    chunks: [
+      {id:"garden_core",      x:560, y:280},  // center 560-1120 / 280-672
+      {id:"office_dev",       x:168, y:280},  // W, touches garden left
+      {id:"office_design",    x:1120,y:280},  // E, touches garden right
+      {id:"server_glass",     x:672, y:0},    // N
+      {id:"audio_lab",        x:1064,y:0},    // NE
+      {id:"cafe",             x:1120,y:616},  // SE
+      {id:"reception",        x:672, y:728},  // S
+      {id:"arcade_billiards", x:168, y:728},  // SW
+      {id:"fitness",          x:1456,y:392},  // E below office_design
+      {id:"corridor_seg",     x:168, y:616}   // bridge office_dev->arcade
+    ],
+    loops: { J:[[700,420],[980,420],[980,560],[700,560]], H:[[220,350],[480,350],[480,900],[220,900]] },
+    spawn: {x:840, y:476}, camAnchor:{x:840, y:500} },
+
+  /* PC 1600x900 — wide-ring, same ring layout as landscape */
+  pc: { orient:"pc", viewport:[1600,900], world:[2560,1440],
+    chunks: [
+      {id:"garden_core",      x:560, y:280},
+      {id:"office_dev",       x:168, y:280},
+      {id:"office_design",    x:1120,y:280},
+      {id:"server_glass",     x:672, y:0},
+      {id:"audio_lab",        x:1064,y:0},
+      {id:"cafe",             x:1120,y:616},
+      {id:"reception",        x:672, y:728},
+      {id:"arcade_billiards", x:168, y:728},
+      {id:"fitness",          x:1456,y:392}
+    ],
+    loops: { J:[[700,420],[980,420],[980,560],[700,560]], H:[[220,350],[480,350],[480,900],[220,900]] },
+    spawn: {x:840, y:476}, camAnchor:{x:840, y:500} }
+};
+
+/* ---------- ENGINE ---------- */
+const G17 = {
+  tile: 28, zoom: 1.4,
+  state: { manifest:null, pendingReflow:null, walking:false, cam:{x:0,y:0}, vx:0, vy:0, orient:"landscape" },
+
+  pickManifest() {
+    const w = window.innerWidth, h = window.innerHeight;
+    const wide = w >= 1200;
+    return wide ? "pc" : (w < h ? "portrait" : "landscape");
+  },
+
+  anchorChunks(man) {
+    for (const c of man.chunks) {
+      const ch = ORBIT_CHUNKS[c.id];
+      c.px = c.x; c.py = c.y;
+      c.collPx = (ch.coll||[]).map(r => [c.x + r[0]*this.tile, c.y + r[1]*this.tile, r[2]*this.tile, r[3]*this.tile]);
+    }
+    this.regenCorridors(man);
+  },
+
+  regenCorridors(man) {
+    man.corridors = [];
+    const chunks = man.chunks.slice().sort((a,b)=> (a.x+a.y)-(b.x+b.y));
+    for (let i=0;i<chunks.length-1;i++){
+      const a = chunks[i], b = chunks[i+1];
+      const aW = ORBIT_CHUNKS[a.id].w*this.tile;
+      const gap = (b.x) - (a.x + aW);
+      if (gap > this.tile && Math.abs(a.y - b.y) < this.tile*6) {
+        man.corridors.push({ id:"corridor_seg", x:a.x + aW, y:a.y, w:gap/this.tile, h:4 });
+      }
+    }
+  },
+
+  reflowTo(orient) {
+    const man = ORBIT_MANIFESTS[orient];
+    if (!man) return;
+    const focal = this.playerFocal();
+    this.state.pendingReflow = { man, focal };
+    if (this.state.walking) return;
+    this.applyReflow();
+  },
+  applyReflow() {
+    if (!this.state.pendingReflow) return;
+    const { man, focal } = this.state.pendingReflow;
+    this.state.pendingReflow = null;
+    const fx = focal ? focal.x : man.camAnchor.x, fy = focal ? focal.y : man.camAnchor.y;
+    document.body.classList.add("g17-reflow");
+    this.state.manifest = man;
+    this.anchorChunks(man);
+    this.state.cam.x = fx - window.innerWidth /2;
+    this.state.cam.y = fy - window.innerHeight/2;
+    this.clampCam();
+    setTimeout(()=> document.body.classList.remove("g17-reflow"), 250);
+  },
+  onIdle() { if (this.state.pendingReflow) this.applyReflow(); },
+
+  startPan(e){ this.drag = {x:e.clientX,y:e.clientY,vx:0,vy:0}; },
+  pan(e){ if(!this.drag) return; this.drag.vx=(e.clientX-this.drag.x); this.drag.vy=(e.clientY-this.drag.y); this.state.cam.x-=this.drag.vx; this.state.cam.y-=this.drag.vy; this.drag.x=e.clientX; this.drag.y=e.clientY; this.clampCam(); },
+  endPan(){ this.drag=null; },
+  stepChevron(dir){ const s=3*this.tile; if(dir==="L")this.state.cam.x-=s; if(dir==="R")this.state.cam.x+=s; if(dir==="T")this.state.cam.y-=s; if(dir==="B")this.state.cam.y+=s; this.clampCam(); },
+  clampCam(){
+    const m=this.state.manifest, P=this.worldPx(), cw=window.innerWidth, ch=window.innerHeight;
+    this.state.cam.x=Math.max(-12, Math.min(this.state.cam.x, P.w-cw+12));
+    this.state.cam.y=Math.max(-12, Math.min(this.state.cam.y, P.h-ch+12));
+  },
+  worldPx(){ const m=this.state.manifest; let w=0,h=0; for(const c of m.chunks){w=Math.max(w,c.x+ORBIT_CHUNKS[c.id].w*this.tile);h=Math.max(h,c.y+ORBIT_CHUNKS[c.id].h*this.tile);} return {w,h}; },
+  playerFocal(){ return this.playerPos || null; },
+
+  chat: {
+    api:"http://127.0.0.1:8090/v1/chat/completions", model:"zillion",
+    rate:[3,10000], timestamps:[], state:"expanded", offline:false,
+    async send(text){
+      const now=Date.now();
+      this.timestamps = this.timestamps.filter(t => now-t<10000);
+      if (this.timestamps.length >= this.rate[0]) { this.pushBubble({from:"system", text:"Rate limit: 3/10s", kind:"event"}); return; }
+      this.timestamps.push(now);
+      this.pushBubble({from:"boss", text, kind:"boss"});
+      try {
+        const ctrl = new AbortController(); const to = setTimeout(()=>ctrl.abort(), 8000);
+        const r = await fetch(this.api, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({model:this.model, messages:[{role:"user",content:text}]}), signal:ctrl.signal});
+        clearTimeout(to); const d = await r.json();
+        this.pushBubble({from:"zillion", text:d.choices?.[0]?.message?.content || "(walang reply)", kind:"ai"});
+      } catch(e) {
+        this.offline = true; this.setOffline(true); this.pushBubble({from:"zillion", text:"AI offline — connect gateway. (echo)", kind:"ai"});
+      }
+    },
+    setOffline(v){ const s=document.querySelector("#chat-offline-strip"); if(s){s.style.display=v?"flex":"none";} const i=document.querySelector("#chat-input"); if(i){i.disabled=v;} },
+    pushBubble(m){ /* append to unified feed w/ timestamp */ }
+  }
+};
+
+/* ---------- INTEGRATION NOTES (Cody) ----------
+   1. Load after main engine, before first render.
+   2. G17.state.manifest = ORBIT_MANIFESTS[G17.pickManifest()]; G17.anchorChunks(...).
+   3. resize debounce 150ms + screen.orientation -> G17.reflowTo(G17.pickManifest()).
+   4. Hook openArcade()/shootArcadeLaser() -> existing hooks (spec §3).
+   5. Chevron buttons -> G17.stepChevron(dir); show only when world>viewport.
+   6. Chat DOM ids: #chat-fab, #chat-card, #chat-input, #chat-send, #chat-offline-strip.
+   7. playerPos updated each frame -> G17.playerPos = {x,y}.
+*/
+
+const DIALOGUE_PUDDLE = {
+  "meta": {
+    "game": "ARENA AI TYCOON",
+    "gate": "17.3",
+    "lang": "Taglish",
+    "rule": "proximity <= 2 tiles, 40% trigger",
+    "author": "Aria lane (initial draft) + Zillion (production rewrite)",
+    "date": "2026-08-30"
+  },
+  "J": [
+    "Nag-mop ako ng garden, walang kalat!",
+    "Hoy, iwas! Basang-basa ang sahig dito.",
+    "Sabi ni Zillion, wag daw magkalat sa pond. Eh sino bang nagsasabi? Haha.",
+    "Isa, dalawa, tatlo... 28 tiles per row. Sanay na sanay na ako.",
+    "Yung Koi fish, mas mabait pa sa mga dev. Hahaha.",
+    "Backlog pa rin ang garden watering schedule? Antay na lang ako.",
+    "Pahinga muna ako sa bench — 30 seconds lang, walang magrereklamo.",
+    "Kung pwede lang mag-sprint na parang si H-Bot, eh di tapos na lahat.",
+    "May nakitang lumang bug report sa ilalim ng bench. Kay Jax ko na lang ibibigay.",
+    "Pwede bang mag-break? Eh may polish naman na ang floor ko, promise.",
+    "Ganda ng string lights dito sa gabi. Parang disco ng mga halaman.",
+    "Wag kayong tatawid sa pond bridge sabay-sabay, ha! Stress lang sa akin."
+  ],
+  "H": [
+    "Parcel delivered kay Marcus! Susunod, kay Aria.",
+    "Package for Cody — 2 monitors? Grabe, ang bigat!",
+    "Express delivery! 3-tile radius, 40% chance, wala nang hihirit.",
+    "Bawal bang mag-ayos ng buhok habang nagde-deliver? Baka kasi may selfie.",
+    "Corridor clear! Pasada ako ngayon.",
+    "Dito na ako sa corridor loop, kung saan pumapalpak ang lahat ng deliveries.",
+    "Kape para sa Café? Coffee Incident, part two na naman ba to? Haha.",
+    "Naiwan yung mga dokumento ni Boss sa Office A — binigay ko na kay Vanguard.",
+    "Mas mabilis pa ako sa deadline mo, Marcus. Sabi ko lang.",
+    "Parcel count ngayon: dalawa na lang para sa daily quota!",
+    "Pwede bang mag-park dito sandali? Nakakapagod mag-deliver ng walang coffee break.",
+    "Yung office na to, ang daming monitors. Baka nag-mine ng arena coins, eme lang."
+  ],
+  "events": {
+    "J": [
+      "J-Bot: Nag-mop ng garden ring, zero kalat!",
+      "J-Bot: Naka-park sa bench, 30-sec break, brb.",
+      "J-Bot: Nakitang koi fish — sabi raw 'wag daw istorbohin ang pond."
+    ],
+    "H": [
+      "H-Bot: Parcel delivered kay Marcus! Next: Aria.",
+      "H-Bot: Express run sa corridor — 3 tiles, 40%, delivered!",
+      "H-Bot: Nag-hatid ng caffeine kay Echo sa Audio Lab. Ingay doon!"
+    ]
+  }
+};
+/* ============================================================
+   ARENA AI TYCOON — GATE 17 — ARENA ORBIT RUNTIME
+   g17_engine_v4.js — v3 top-down (intact) + 2D ISOMETRIC mode
+   Zillion cloud brain · 2026-08-30 · Boss-approved style: 2D iso
+   ============================================================ */
+(function () {
+  'use strict';
+  const T = G17.tile;
+
+  const O = { art: {}, ready: false, j: null, h: null, bubbles: [], dialogueT: 6, lastT: 0 };
+
+  const ART = {
+    garden_core: 'orbit/garden_core.jpg', office_dev: 'orbit/office_dev.jpg',
+    office_design: 'orbit/office_design.jpg', server_glass: 'orbit/server_glass.jpg',
+    audio_lab: 'orbit/audio_lab.jpg', arcade_billiards: 'orbit/arcade_billiards.jpg',
+    cafe: 'orbit/cafe.jpg', reception: 'orbit/reception.jpg', fitness: 'orbit/fitness.jpg',
+    corridor_seg: 'orbit/corridor_seg.jpg'
+  };
+  function loadImg(src) {
+    return new Promise(res => {
+      const i = new Image();
+      i.onload = () => res(i); i.onerror = () => res(null); i.src = src;
+    });
+  }
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  }
+
+  /* ============================================================
+     ISO MODE — 2D ISOMETRIC (Boss FINAL approval 2026-08-30)
+     Pre-rendered modern scene + walkable grid + A* + smooth
+     velocity-based movement (talagang naglalakad) + will-driven
+     goals + y-sort with furniture overlays.
+     ============================================================ */
+  const ISO = {
+    W: 1672, H: 941, CELL: 13,
+    scene: null, ov: {}, sheets: {},
+    grid: null, gw: 0, gh: 0,
+    agents: [], camFocus: null, lastWillT: 0,
+    garden: { x: 836, y: 455, rIn: 150, rOut: 240 },
+    bridge: { x: 716, y: 438, w: 240, h: 36 }
+  };
+  G17._iso = ISO; // QA/debug handle (top-down world; iso mode reuses same object)
+  /* walkable regions: ring annulus + alcove floors + doorways + bridge */
+  const ISO_FLOORS = [
+    [40, 560, 480, 880],   // dev (BL)
+    [40, 120, 480, 430],   // arcade (TL)
+    [560, 40, 1110, 210],  // server (T)
+    [1190, 60, 1650, 310], // audio (TR)
+    [1230, 330, 1650, 570],// design (R)
+    [1230, 590, 1650, 790],// gym (R-low)
+    [1050, 640, 1650, 910],// cafe (BR)
+    [560, 640, 1110, 910]  // reception (B)
+  ];
+  /* ring→alcove doorways (walkable connectors) */
+  const ISO_DOORS = [
+    [786, 205, 886, 320],  // server
+    [1040, 245, 1200, 350],// audio
+    [1060, 400, 1240, 500],// design
+    [1060, 555, 1240, 660],// gym
+    [1000, 595, 1140, 700],// cafe
+    [786, 585, 886, 700],  // reception
+    [470, 555, 600, 665],  // dev
+    [470, 300, 600, 405]   // arcade
+  ];
+  /* solid furniture (agents push out of these) */
+  const ISO_SOLID = [
+    [70, 620, 150, 678], [190, 660, 270, 718], [70, 760, 150, 818], [190, 800, 270, 858], // dev desks
+    [60, 572, 300, 600], // dev whiteboard
+    [70, 180, 140, 248], [180, 168, 250, 238], // arcade cabinets
+    [290, 258, 420, 338], [428, 300, 452, 378], // pool + cue rack
+    [620, 78, 980, 148], // server racks
+    [1330, 138, 1420, 218], [1480, 188, 1560, 248], // drums, synth
+    [1290, 408, 1340, 468], [1370, 448, 1420, 508], [1450, 488, 1500, 548], // easels
+    [1538, 348, 1622, 478], // pin-up wall
+    [1330, 628, 1400, 698], [1420, 668, 1490, 738], [1540, 700, 1602, 740], // treadmills, bench
+    [1140, 688, 1330, 758], [1330, 758, 1400, 828], // cafe counter L
+    [1500, 698, 1560, 778], // vending
+    [1140, 828, 1192, 878], [1290, 848, 1342, 898], [1450, 828, 1502, 878], // cafe tables
+    [700, 728, 980, 792] // reception desk
+  ];
+  const OVERLAYS = [
+    ['dev_desks', 33, 395, 503, 471], ['arcade', 33, 132, 470, 452],
+    ['gym', 1304, 282, 348, 302], ['design', 1204, 94, 448, 302],
+    ['cafe', 1137, 545, 519, 349], ['reception', 502, 584, 670, 310]
+  ];
+  /* zone goal points */
+  const ZONES = {
+    dev: [[110, 706], [230, 746], [110, 846], [230, 884]],
+    design: [[1330, 536], [1410, 576], [1490, 616]],
+    server: [[700, 172], [836, 172], [970, 172]],
+    audio: [[1380, 244], [1520, 274]],
+    arcade: [[100, 272], [210, 262], [350, 392]],
+    gym: [[1360, 724], [1450, 764], [1570, 770]],
+    cafe: [[1200, 806], [1330, 884], [1470, 862], [1566, 762]],
+    reception: [[700, 852], [836, 884], [970, 852]],
+    garden: [[836, 260], [1004, 308], [1031, 455], [1004, 602], [836, 650], [668, 602], [641, 455], [668, 308]],
+    bridge: [[836, 456]]
+  };
+  /* per-persona: speed px/s + will weights (dev,design,server,audio,arcade,gym,cafe,garden,reception,social) */
+  const PERSONA = {
+    zillion:  [34, [3, .4, .3, .2, 1.5, .4, 1, 1, .6, 2]],
+    cody:     [36, [3, .2, .2, .1, 1, .3, 1.5, .8, .4, 1.5]],
+    vortex:   [35, [3, .3, .3, .3, 1.5, .4, 1, .8, .3, 1]],
+    marcus:   [32, [.6, .4, 2, .5, .3, .3, 1, .8, 2, 2.5]],
+    aria:     [33, [.5, 2, .4, .6, .4, .4, 2, 1.5, .8, 2]],
+    pixel:    [35, [.4, 3, .2, .3, .6, .4, 1, 1, .4, 1]],
+    echo:     [33, [.5, .6, .4, 3, .5, .5, 1, 1, .5, 1.5]],
+    jax:      [38, [1, .4, .3, .4, 3, .8, 1.5, .8, .4, 2]],
+    vanguard: [30, [.6, .4, 2, .4, .2, .3, 1, .8, 2, 1.5]],
+    chronos:  [31, [.5, .5, .8, .5, .3, .6, 1, 2, 1.5, 2]]
+  };
+  const LINES = {
+    greet: ['Uy, magandang araw!', 'Kumusta! Tayo na?', 'Hey! Nakita kita agad.', 'Aba, kasama mo na ako!'],
+    coffee: ['Gising na ko sa coffee na!', 'Pupunta ako sa cafe, kaya?', 'Isang americano, please!', 'Kape muna bago mag-code.', 'Ang init, coffee time na ba?'],
+    work: ['Focus mode, wag munang gisingin.', 'May deadline totoo eh.', 'Debug pa tayo ng baon...', 'Shipping na yung feature.', 'Hindi ko pa ma-fix yung bug na \'to.'],
+    chat: ['Eh ano nga ba yung plot twist na \'yon?', 'Sino sa atin ang team lead na susuguan?', 'Pangarap ko, live studio parang totoo.', 'Tee-hee, Boss naa-approve talaga tayo.', 'Hindi kita tinatawanan... ok tinatawanan.'],
+    arcade: ['Sala ko sa pool!', 'High score ko pa \'yan!', 'Isang last round lang.', 'Ganernako n\'yung arcade cabinet!'],
+    garden: ['Fresh air, good vibes.', 'Ang ganda ng garden na \'to.', 'Koi pa ako mag-follow ng sandali.', 'Chill mode activated.'],
+    idle: ['Hmm... mag-aalala ako ng features.', 'Recharging energy.', 'May ideya ako... o hindi naman.', 'Watching the garden, peace.'],
+    botJ: ['Nandito na ako!', 'May delivery po ako!', 'Sanaay naman yung pakete!', 'Charging lang muna.'],
+    botH: ['Monitoring. All systems nominal.', 'Nakita ko yung lahat, Boss.', 'Scan complete. Walang anomaly.', 'Perimeter secured.']
+  };
+  function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+  function ringWalkable(x, y) {
+    const g = ISO.garden, dx = x - g.x, dy = y - g.y, r = Math.hypot(dx, dy);
+    return r >= g.rIn - 14 && r <= g.rOut + 6;
+  }
+  function inRect(x, y, r, pad) {
+    pad = pad || 0;
+    return x >= r[0] - pad && x <= r[2] + pad && y >= r[1] - pad && y <= r[3] + pad;
+  }
+  function baseWalkable(x, y) {
+    if (inRect(x, y, ISO.bridge)) return true;
+    if (ringWalkable(x, y)) return true;
+    for (const f of ISO_FLOORS) if (inRect(x, y, f)) return true;
+    for (const d of ISO_DOORS) if (inRect(x, y, d)) return true;
+    return false;
+  }
+  function solidAt(x, y, r) {
+    for (const s of ISO_SOLID) if (inRect(x, y, s, r || 0)) return true;
+    const g = ISO.garden, dx = x - g.x, dy = y - g.y;
+    if (Math.hypot(dx, dy) < 118 + (r || 0) && !inRect(x, y, ISO.bridge, 2)) return true;
+    return false;
+  }
+  function cellOpen(cxi, cyi) {
+    if (cxi < 0 || cyi < 0 || cxi >= ISO.gw || cyi >= ISO.gh) return false;
+    const x = cxi * ISO.CELL + ISO.CELL / 2, y = cyi * ISO.CELL + ISO.CELL / 2;
+    return baseWalkable(x, y) && !solidAt(x, y, 8);
+  }
+  function buildGrid() {
+    ISO.gw = Math.ceil(ISO.W / ISO.CELL); ISO.gh = Math.ceil(ISO.H / ISO.CELL);
+    const g = new Uint8Array(ISO.gw * ISO.gh);
+    for (let y = 0; y < ISO.gh; y++) for (let x = 0; x < ISO.gw; x++)
+      g[y * ISO.gw + x] = cellOpen(x, y) ? 1 : 0;
+    ISO.grid = g;
+  }
+  function gridIdx(x, y) { return Math.floor(y / ISO.CELL) * ISO.gw + Math.floor(x / ISO.CELL); }
+  function nearestOpenCell(x, y) {
+    const ci = Math.floor(x / ISO.CELL), cj = Math.floor(y / ISO.CELL);
+    for (let r = 0; r < 6; r++)
+      for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) {
+        if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+        if (cellOpen(ci + dx, cj + dy)) return [(ci + dx) * ISO.CELL + ISO.CELL / 2, (cj + dy) * ISO.CELL + ISO.CELL / 2];
+      }
+    return [x, y];
+  }
+  function aStar(sx, sy, tx, ty) {
+    let start = gridIdx(sx, sy), goal = gridIdx(tx, ty);
+    if (!ISO.grid[start]) { const p = nearestOpenCell(sx, sy); sx = p[0]; sy = p[1]; start = gridIdx(sx, sy); }
+    if (!ISO.grid[goal]) { const p = nearestOpenCell(tx, ty); tx = p[0]; ty = p[1]; goal = gridIdx(tx, ty); }
+    if (!ISO.grid[start] || !ISO.grid[goal]) return null;
+    const gw = ISO.gw, N = ISO.grid.length;
+    const open = [start], gScore = new Float64Array(N).fill(Infinity), fScore = new Float64Array(N).fill(Infinity);
+    const came = new Int32Array(N).fill(-1);
+    gScore[start] = 0;
+    const h = i => { const cx = (i % gw) * 13 + 6.5, cy = Math.floor(i / gw) * 13 + 6.5; return Math.hypot(cx - tx, cy - ty); };
+    fScore[start] = h(start);
+    const inOpen = new Uint8Array(N); inOpen[start] = 1;
+    let guard = 0;
+    while (open.length && guard++ < 12000) {
+      let bi = 0;
+      for (let i = 1; i < open.length; i++) if (fScore[open[i]] < fScore[open[bi]]) bi = i;
+      const cur = open[bi];
+      if (cur === goal) {
+        const path = [];
+        for (let c = cur; c !== -1; c = came[c]) path.unshift([(c % gw) * 13 + 6.5, Math.floor(c / gw) * 13 + 6.5]);
+        return smoothPath(path);
+      }
+      inOpen[cur] = 0; open.splice(open.indexOf(cur), 1);
+      const cx = cur % gw, cy = Math.floor(cur / gw);
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+        if (!dx && !dy) continue;
+        const nx = cx + dx, ny = cy + dy;
+        if (nx < 0 || ny < 0 || nx >= gw || ny >= ISO.gh) continue;
+        const ni = ny * gw + nx;
+        if (!ISO.grid[ni]) continue;
+        if (dx && dy && (!ISO.grid[cy * gw + nx] || !ISO.grid[ny * gw + cx])) continue; // no corner cut
+        const cost = (dx && dy) ? 1.414 : 1;
+        const t = gScore[cur] + cost;
+        if (t < gScore[ni]) {
+          came[ni] = cur; gScore[ni] = t; fScore[ni] = t + h(ni);
+          if (!inOpen[ni]) { open.push(ni); inOpen[ni] = 1; }
+        }
+      }
+    }
+    return null;
+  }
+  function walkLine(x0, y0, x1, y1) {
+    const d = Math.hypot(x1 - x0, y1 - y0), steps = Math.max(2, Math.ceil(d / 6));
+    for (let i = 1; i < steps; i++) {
+      const x = x0 + (x1 - x0) * i / steps, y = y0 + (y1 - y0) * i / steps;
+      if (!baseWalkable(x, y) || solidAt(x, y, 8)) return false;
+    }
+    return true;
+  }
+  function smoothPath(p) {
+    if (p.length < 3) return p;
+    const out = [p[0]];
+    let i = 0;
+    while (i < p.length - 1) {
+      let j = p.length - 1;
+      for (let k = p.length - 1; k > i + 1; k--) {
+        if (walkLine(p[i][0], p[i][1], p[k][0], p[k][1])) { j = k; break; }
+      }
+      out.push(p[j]); i = j;
+    }
+    return out;
+  }
+
+  /* ---- agents: velocity-based smooth movement ---- */
+  const ACCEL = 150, STOP_R = 9, AGENT_R = 9;
+  function recover(b, ms) {
+    b.path = []; b.vx = 0; b.vy = 0; b.state = 'idle';
+    if (b.nextWill !== undefined) b.nextWill = Math.min(b.nextWill, performance.now() + ms);
+    else b.nextTask = Math.min(b.nextTask || 0, performance.now() + ms);
+  }
+  function makeAgent(id, name, x, y) {
+    const [speed, w] = PERSONA[id] || [33, [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]];
+    return { id, name, x, y, px: x, py: y, mx: x, my: y, noMoveT: 0,
+             vx: 0, vy: 0, speed: speed * (0.92 + Math.random() * 0.16),
+             path: [], state: 'idle', face: 'down', anim: Math.random() * 10,
+             weights: w, nextWill: 2000 + Math.random() * 4000, zone: null,
+             socialT: 0, socialWith: null, lastCoffee: -99999, lastWork: -99999,
+             stuckT: 0, idleZone: null };
+  }
+  function nearestOpen(x, y) {
+    for (let r = 6; r < 90; r += 6)
+      for (let a = 0; a < 8; a++) {
+        const px = x + Math.cos(a * 0.785) * r, py = y + Math.sin(a * 0.785) * r;
+        if (baseWalkable(px, py) && !solidAt(px, py, 8)) return [px, py];
+      }
+    return [ISO.garden.x, ISO.garden.y - 195];
+  }
+  function spawnAgents() {
+    ISO.agents = [];
+    const spots = { zillion: [110, 706], cody: [230, 746], vortex: [110, 846],
+      marcus: [836, 884], aria: [1330, 536], pixel: [1410, 576],
+      echo: [1380, 244], jax: [350, 392], vanguard: [700, 172], chronos: [836, 456] };
+    const names = { zillion: 'Zillion', cody: 'Cody', vortex: 'Vortex', marcus: 'Marcus',
+      aria: 'Aria', pixel: 'Pixel', echo: 'Echo', jax: 'Jax', vanguard: 'Vanguard', chronos: 'Chronos' };
+    for (const id in spots) {
+      const [sx, sy] = nearestOpen(spots[id][0], spots[id][1]);
+      ISO.agents.push(makeAgent(id, names[id], sx, sy));
+    }
+    for (const a of ISO.agents) assignHome(a); // G17.5 work schedule
+    /* bots */
+    ISO.j = { id: 'J', name: 'Bot J', x: 836, y: 260, px: 836, py: 260, mx: 836, my: 260, noMoveT: 0,
+              vx: 0, vy: 0, speed: 30, path: [], state: 'idle',
+              face: 'down', anim: 0, socialT: 0, nextTask: 8000, kind: 'botJ', stuckT: 0 };
+    ISO.h = { id: 'H', name: 'Bot H', x: 836, y: 650, px: 836, py: 650, mx: 836, my: 650, noMoveT: 0,
+              vx: 0, vy: 0, speed: 28, path: [], state: 'idle',
+              face: 'up', anim: 0, socialT: 0, nextTask: 12000, kind: 'botH', stuckT: 0 };
+  }
+  function stepMove(b, dt, now) {
+    const sp = Math.hypot(b.vx, b.vy);
+    if (b.path && b.path.length) {
+      /* corner smoothing: drop waypoints we've effectively reached */
+      while (b.path.length > 1 && Math.hypot(b.path[0][0] - b.x, b.path[0][1] - b.y) < 24) b.path.shift();
+      let t = b.path[0];
+      const dx = t[0] - b.x, dy = t[1] - b.y, d = Math.hypot(dx, dy);
+      if (d < STOP_R) {
+        if (b.path[0] && Math.hypot(b.path[0][0] - b.x, b.path[0][1] - b.y) < STOP_R) b.path.shift();
+        else b.path.shift();
+      } else {
+        const desX = dx / d * b.speed, desY = dy / d * b.speed;
+        b.vx += (desX - b.vx) * Math.min(1, ACCEL / b.speed * dt);
+        b.vy += (desY - b.vy) * Math.min(1, ACCEL / b.speed * dt);
+        const ns = Math.hypot(b.vx, b.vy);
+        if (ns > b.speed) { b.vx = b.vx / ns * b.speed; b.vy = b.vy / ns * b.speed; }
+      }
+    } else {
+      const k = Math.max(0, 1 - 7 * dt);
+      b.vx *= k; b.vy *= k;
+      if (Math.hypot(b.vx, b.vy) < 2) { b.vx = 0; b.vy = 0; }
+    }
+    /* integrate + axis-separated collision */
+    let nx = b.x + b.vx * dt, ny = b.y + b.vy * dt;
+    if (baseWalkable(nx, ny) && !solidAt(nx, ny, AGENT_R)) { b.x = nx; b.y = ny; b.stuckT = 0; }
+    else if (baseWalkable(nx, b.y) && !solidAt(nx, b.y, AGENT_R)) { b.x = nx; b.stuckT = 0; }
+    else if (baseWalkable(b.x, ny) && !solidAt(b.x, ny, AGENT_R)) { b.y = ny; b.stuckT = 0; }
+    else { b.vx = 0; b.vy = 0; b.stuckT += dt; }
+    b.x = Math.max(6, Math.min(ISO.W - 6, b.x));
+    b.y = Math.max(6, Math.min(ISO.H - 6, b.y));
+    /* hard validity: never stand on wall/furniture — revert to last valid pos */
+    if (!baseWalkable(b.x, b.y) || solidAt(b.x, b.y, AGENT_R)) {
+      b.x = b.px; b.y = b.py; recover(b, 500);
+    } else { b.px = b.x; b.py = b.y; }
+    /* distance-based stuck detection: walking state but not progressing */
+    if (b.path && b.path.length) {
+      if (Math.hypot(b.x - b.mx, b.y - b.my) > 3) { b.mx = b.x; b.my = b.y; b.noMoveT = 0; }
+      else {
+        b.noMoveT += dt;
+        if (b.noMoveT > 1.1) { b.noMoveT = 0; b.mx = b.x; b.my = b.y; recover(b, 700); }
+      }
+    } else { b.mx = b.x; b.my = b.y; b.noMoveT = 0; }
+    /* facing with hysteresis */
+    const v = Math.hypot(b.vx, b.vy);
+    if (v > 7) {
+      const ang = Math.atan2(b.vy, b.vx);
+      const f = (ang < -Math.PI * 0.75 || ang > Math.PI * 0.75) ? 'up'
+              : (ang < -Math.PI * 0.25) ? 'left'
+              : (ang <= Math.PI * 0.25) ? 'down' : 'right';
+      if (f !== b.face) b.face = f;
+    }
+    b.anim += v * dt * 0.052;
+    if (b.stuckT > 1.6) { b.stuckT = 0; b.path = []; b.nextWill = Math.min(b.nextWill, now + 400); }
+    b.moving = v > 8;
+  }
+  /* ---- G17.5 WORK SCHEDULE (Cody spec): office hours → station-keep own desk ---- */
+  let _clkCache = { t: 0, val: null };
+  const WORK_ZONES = ['dev', 'design', 'server', 'audio'];
+  /* designated work areas (top-down main-game agents) — from G17 agent defs */
+  const WP_HOME = { zillion: 'exec_hq', marcus: 'war_room_gate', aria: 'central_cross_2', cody: 'server_room',
+    pixel: 'dev_core_north_3', echo: 'dev_core_north_3', vortex: 'west_corridor_1',
+    jax: 'central_cross_3', vanguard: 'central_plaza', chronos: 'lounge_gate' };
+  function assignHome(a) {
+    let best = null, bd = 1e9;
+    for (const z of WORK_ZONES) {
+      const pts = ZONES[z] || [];
+      for (const p of pts) {
+        const d = Math.hypot(p[0] - a.x, p[1] - a.y);
+        if (d < bd) { bd = d; best = { zone: z, pt: p }; }
+      }
+    }
+    a.home = best ? best.zone : 'dev';
+    a.homePt = best ? best.pt : ((ZONES.dev || ZONES.garden)[0]);
+  }
+  function officeHoursNow() {
+    if (G17.state.clockOverride) {
+      const c = G17.state.clockOverride;
+      G17.state.workMode = (c.day >= 1 && c.day <= 5 && c.min >= 540 && c.min < 1080) ? 'work' : 'free';
+      return G17.state.workMode === 'work';
+    }
+    const now = performance.now();
+    if (!_clkCache.val || now - _clkCache.t > 2000) {
+      try {
+        const txt = document.body.innerText || '';
+        const tm = txt.match(/TIME:\s*(\d{1,2}):(\d{2})\s*(AM|PM)/);
+        const dm = txt.match(/DAY:\s*\d+\s*[·-]\s*([A-Za-z]{3})/);
+        if (tm && dm) {
+          let h = parseInt(tm[1], 10); const m = parseInt(tm[2], 10);
+          if (tm[3] === 'PM' && h < 12) h += 12; if (tm[3] === 'AM' && h === 12) h = 0;
+          const days = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+          _clkCache = { t: now, val: { day: days[dm[1]] != null ? days[dm[1]] : 1, min: h * 60 + m } };
+        }
+      } catch (e) {}
+    }
+    const c = _clkCache.val;
+    const off = !!(c && c.day >= 1 && c.day <= 5 && c.min >= 540 && c.min < 1080);
+    G17.state.workMode = off ? 'work' : 'free';
+    return off;
+  }
+  G17.state.workMode = 'free';
+  G17.workMode = () => G17.state.workMode;
+  /* ---- will-driven goal selection (NOT random drift) ---- */
+  function chooseGoal(a, now) {
+    /* work mode: stay in own designated desk zone (walk TO it, no teleport) */
+    if (officeHoursNow() && a.homePt) {
+      const p = a.homePt;
+      const jx = p[0] + (Math.random() * 44 - 22);
+      const jy = p[1] + (Math.random() * 44 - 22);
+      a.zone = a.home;
+      a.path = aStar(a.x, a.y, jx, jy);
+      if (!a.path || !a.path.length) { const [ox, oy] = nearestOpen(a.x + 40, a.y); a.path = aStar(a.x, a.y, ox, oy) || []; }
+      a.state = a.path.length ? 'walk' : 'idle';
+      if (Math.random() < 0.4) sayBubble(a, pick(LINES[a.home] || LINES.work));
+      return;
+    }
+    const day = new Date().getDay();
+    const beerFri = (day === 5 || day === 0); // Beer Friday + weekend chill
+    const w = a.weights.slice();
+    if (now - a.lastCoffee > 90000) w[6] *= 2.2;              // coffee need
+    if (now - a.lastWork > 150000) { w[7] *= 1.6; w[6] *= 1.3; } // need a break
+    if (beerFri) w[6] *= 2.2;                                   // Beer Friday café boost
+    if (a.socialT > 0) w[9] *= 0.2;
+    let total = 0; for (let i = 0; i < w.length; i++) total += w[i];
+    let r = Math.random() * total, zone = 'garden';
+    const zoneIds = ['dev', 'design', 'server', 'audio', 'arcade', 'gym', 'cafe', 'garden', 'reception'];
+    for (let i = 0; i < zoneIds.length; i++) { r -= w[i]; if (r <= 0) { zone = zoneIds[i]; break; } }
+    if (Math.random() < w[9] / total && ISO.agents.length > 1) {
+      /* chat with a specific person (will, not drift) — only if reachable */
+      const others = ISO.agents.filter(o => o !== a);
+      const peer = pick(others);
+      const p = aStar(a.x, a.y, peer.x, peer.y);
+      if (p && p.length) { a.path = p; a.state = 'walk'; a.socialWith = peer; a.zone = null; return; }
+      /* unreachable peer → fall through to zone choice */
+    }
+    a.zone = zone;
+    const pts = ZONES[zone] || ZONES.garden;
+    const p = pick(pts);
+    a.path = aStar(a.x, a.y, p[0], p[1]);
+    if (!a.path || !a.path.length) { const [ox, oy] = nearestOpen(a.x + 40, a.y); a.path = aStar(a.x, a.y, ox, oy) || []; }
+    a.state = a.path.length ? 'walk' : 'idle';
+  }
+  function stepWill(a, now) {
+    if (a.state === 'social' && (!a.path || !a.path.length)) a.state = 'idle'; // deadlock safety
+    if (a.state === 'social') return;
+    if (now >= a.nextWill) {
+      a.nextWill = now + 3500 + Math.random() * 4500;
+      if (a.state === 'walk' && a.path.length < 2) a.state = 'idle';
+      if (a.state === 'idle') {
+        chooseGoal(a, now);
+        const zone = a.zone;
+        if (zone === 'cafe') a.lastCoffee = now;
+        if (zone === 'dev' || zone === 'server' || zone === 'audio' || zone === 'design') a.lastWork = now;
+        if (Math.random() < 0.55) sayBubble(a, pick(LINES[zone === 'garden' ? 'garden' : (zone === 'cafe' ? 'coffee' : zone === 'arcade' ? 'arcade' : 'work')]));
+      }
+    }
+  }
+  /* social proximity: 2 near idle agents → stop, face, talk */
+  function stepSocial(now) {
+    for (const a of ISO.agents) {
+      if (a.state !== 'idle' || a.socialT > 0) continue;
+      for (const b of ISO.agents) {
+        if (a === b || b.socialT > 0 || b.state !== 'idle') continue;
+        if (Math.hypot(a.x - b.x, a.y - b.y) < 30) {
+          a.socialT = 4000 + Math.random() * 4000; b.socialT = Math.min(b.socialT || a.socialT, a.socialT);
+          a.face = b.x > a.x ? 'right' : 'left'; b.face = a.x > b.x ? 'right' : 'left';
+          if (Math.random() < 0.7) sayBubble(a, pick(LINES.chat));
+          if (Math.random() < 0.4) sayBubble(b, pick(LINES.greet));
+          break;
+        }
+      }
+    }
+    for (const a of ISO.agents) if (a.socialT > 0) a.socialT -= 16.7;
+  }
+  function stepBots(now) {
+    const all = [ISO.j, ISO.h];
+    for (const b of all) {
+      if (b.path.length === 0 && now >= (b.nextTask || 0)) {
+        b.nextTask = now + 9000 + Math.random() * 14000;
+        if (b.kind === 'botJ' && ISO.agents.length) {
+          const tgt = pick(ISO.agents);
+          b.path = aStar(b.x, b.y, tgt.x + 14, tgt.y + 10) || [];
+          if (b.path.length) b.deliverTo = tgt;
+        } else {
+          const p = pick(ZONES.garden);
+          b.path = aStar(b.x, b.y, p[0], p[1]) || [];
+        }
+        b.state = b.path.length ? 'walk' : 'idle';
+      }
+      if (b.state === 'walk' && b.path.length === 0) {
+        b.state = 'idle';
+        if (b.deliverTo) { sayBubble(b, pick(LINES.botJ)); b.deliverTo = null; }
+      }
+      if (b.state === 'idle' && Math.random() < 0.0004) sayBubble(b, pick(b.kind === 'botJ' ? LINES.botJ : LINES.botH));
+    }
+  }
+  function sayBubble(b, text) {
+    O.bubbles.push({ x: b.x, y: b.y - 62, text, until: performance.now() + 4200,
+                     follow: (b && b.id && b.id.length === 1) ? null : b });
+  }
+  function drawIsoAgent(b, t, scaleF) {
+    const sheet = ISO.sheets[b.id] || ISO.sheets[b.kind];
+    if (!sheet || !sheet.complete || !sheet.naturalWidth) return;
+    const ROW = { down: 0, up: 1, left: 2, right: 3 };
+    const row = ROW[b.face] !== undefined ? ROW[b.face] : 0;
+    const fw = sheet.naturalWidth / 3, fh = sheet.naturalHeight / 4;
+    const col = b.moving ? (Math.floor(b.anim) % 2) : 0;
+    const dw = 44 * scaleF, dh = 64 * scaleF;
+    const bob = b.moving ? Math.sin(b.anim * Math.PI) * 1.3 : 0;
+    ctx.save();
+    ctx.translate(b.x, b.y);
+    ctx.fillStyle = 'rgba(0,0,0,0.25)';
+    ctx.beginPath(); ctx.ellipse(0, 2, 11 * scaleF, 3.6 * scaleF, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.drawImage(sheet, col * fw, row * fh, fw, fh, -dw / 2, -dh + 3 + bob, dw, dh);
+    ctx.restore();
+    ctx.fillStyle = '#ffffff'; ctx.font = 'bold ' + Math.max(9, Math.round(9 * scaleF)) + 'px monospace';
+    ctx.shadowColor = '#000000'; ctx.shadowBlur = 3; ctx.textAlign = 'center';
+    ctx.fillText(b.name, b.x, b.y + 12 * scaleF + bob);
+    ctx.textAlign = 'left'; ctx.shadowBlur = 0;
+  }
+  function renderOrbitISO(t, s) {
+    ctx.save();
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.translate(canvas.width / 2, canvas.height / 2);
+    ctx.scale(s, s);
+    ctx.translate(-G17.state.cam.x, -G17.state.cam.y);
+    if (ISO.scene && ISO.scene.complete && ISO.scene.naturalWidth) {
+      ctx.drawImage(ISO.scene, 0, 0, ISO.W, ISO.H);
+    } else {
+      ctx.fillStyle = '#111'; ctx.fillRect(0, 0, ISO.W, ISO.H);
+      ctx.fillStyle = '#fff'; ctx.font = '20px monospace'; ctx.fillText('loading scene...', 700, 470);
+    }
+    /* y-sorted items: agents + furniture overlays */
+    const items = [];
+    for (const a of ISO.agents) items.push({ y: a.y, draw: () => drawIsoAgent(a, t, 1) });
+    const all = [ISO.j, ISO.h];
+    for (const b of all) if (b) items.push({ y: b.y, draw: () => drawIsoAgent(b, t, 1) });
+    for (const [nm, x, y, w, h] of OVERLAYS) {
+      const img = ISO.ov[nm];
+      if (!img || !img.complete || !img.naturalWidth) continue;
+      items.push({ y: y + h * 0.42, draw: () => ctx.drawImage(img, x, y, w, h), occl: true });
+    }
+    items.sort((p, q) => p.y - q.y);
+    for (const it of items) it.draw();
+    drawBubbles();
+    ctx.restore();
+  }
+
+  async function bootISO() {
+    const S = 'orbit_iso/';
+    ISO.scene = await loadImg(S + 'iso_scene.jpg');
+    for (const [nm] of OVERLAYS) ISO.ov[nm] = await loadImg(S + 'ov_' + nm + '.png');
+    const ids = ['zillion', 'marcus', 'aria', 'cody', 'pixel', 'echo', 'vortex', 'jax', 'vanguard', 'chronos'];
+    for (const id of ids) ISO.sheets[id] = await loadImg(S + 'sheet_' + id + '.png');
+    ISO.sheets.botJ = await loadImg(S + 'sheet_botJ.png');
+    ISO.sheets.botH = await loadImg(S + 'sheet_botH.png');
+    if (!ISO.scene) { console.warn('[G17ISO] scene missing — staying top-down'); return false; }
+    buildGrid();
+    spawnAgents();
+    G17._iso = ISO; // QA/debug handle
+    G17.worldPx = () => ({ w: ISO.W, h: ISO.H });
+    G17.state.cam.x = ISO.W / 2; G17.state.cam.y = ISO.H / 2;
+    G17.clampCam();
+    camX = G17.state.cam.x; camY = G17.state.cam.y;
+    console.log('[G17ISO] isometric mode live · grid', ISO.gw, 'x', ISO.gh);
+    return true;
+  }
+
+  /* ---- legacy orbit code (Gate 17.3, intact fallback) ---- */
+  const ROSTER = {
+    zillion: ['office_dev', 2.5, 3.4], cody: ['office_dev', 6.5, 3.4], vortex: ['office_dev', 10.5, 3.4],
+    pixel: ['office_design', 2.5, 3.6], aria: ['office_design', 6.5, 3.6], vanguard: ['office_design', 9.8, 3.6],
+    marcus: ['server_glass', 3.5, 4.6], echo: ['audio_lab', 5, 4.6],
+    chronos: ['reception', 3.5, 3.4], jax: ['arcade_billiards', 6, 3.6]
+  };
+  function orbitAgentPos(a, t) {
+    const r = ROSTER[a.id]; if (!r) return null;
+    const c = G17.state.manifest.chunks.find(c => c.id === r[0]); if (!c) return null;
+    const wx = c.px + r[1] * T, wy = c.py + r[2] * T;
+    const s1 = t * 0.0004 + a.x * 0.13, s2 = t * 0.00031 + a.y * 0.11;
+    return { x: wx + Math.sin(s1) * 30, y: wy + Math.cos(s2) * 18,
+             vx: Math.cos(s1) * 0.012, vy: -Math.sin(s2) * 0.0056 };
+  }
+  function buildBots() {
+    if (G17.state.isoMode) return; // iso has its own bots
+    const man = G17.state.manifest;
+    const mk = (img, loops, speed, nFrames) => ({ img, nFrames, speed, pts: loops || [[400, 400], [700, 400]], i: 0, x: (loops && loops[0][0]) || 400, y: (loops && loops[0][1]) || 400, facing: 'right', t: 0 });
+    O.j = mk(O.art.bot_janitor, man.loops.J, 42, 3);
+    O.h = mk(O.art.bot_helper, man.loops.H, 60, 4);
+  }
+  function stepBot(b, dt) {
+    if (!b || !b.pts || !b.pts.length) return;
+    const target = b.pts[b.i];
+    const dx = target[0] - b.x, dy = target[1] - b.y;
+    const d = Math.hypot(dx, dy);
+    if (d < 4) { b.i = (b.i + 1) % b.pts.length; return; }
+    b.x += (dx / d) * b.speed * dt;
+    b.y += (dy / d) * b.speed * dt;
+    b.facing = Math.abs(dx) > Math.abs(dy) * 1.4 ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
+    b.t += dt;
+  }
+  const BOT_PITCH_X = 30, BOT_PITCH_Y = 48, BOT_FW = 28, BOT_FH = 44;
+  function drawBot(b) {
+    if (!b || !b.img || !b.img.complete || !b.img.naturalWidth) return;
+    const row = { down: 0, up: 1, left: 2, right: 3 }[b.facing] || 0;
+    const col = Math.floor(b.t * 5) % b.nFrames;
+    const sx = col * BOT_PITCH_X, sy = row * BOT_PITCH_Y;
+    ctx.save();
+    ctx.translate(b.x, b.y);
+    ctx.fillStyle = 'rgba(0,0,0,0.22)';
+    ctx.beginPath(); ctx.ellipse(0, 3, 10, 3.4, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.drawImage(b.img, sx, sy, BOT_FW, BOT_FH, -BOT_FW / 2, -BOT_FH + 3, BOT_FW, BOT_FH);
+    ctx.restore();
+  }
+  function drawKoi(t) {
+    const c = G17.state.manifest.chunks.find(c => c.id === 'garden_core'); if (!c) return;
+    const cx = c.px + 10 * T, cy = c.py + 7 * T;
+    for (let k = 0; k < 2; k++) {
+      const a = t * 0.0005 + k * Math.PI;
+      const kx = cx + Math.cos(a) * 36, ky = cy + Math.sin(a) * 20;
+      ctx.save(); ctx.translate(kx, ky); ctx.rotate(a + Math.PI / 2);
+      ctx.fillStyle = k ? '#ff8c42' : '#ffb347';
+      ctx.beginPath(); ctx.ellipse(0, 0, 7, 3, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+    }
+  }
+  function drawLEDS(t) {
+    const c = G17.state.manifest.chunks.find(c => c.id === 'server_glass'); if (!c) return;
+    for (let i = 0; i < 12; i++) {
+      const lx = c.px + (2 + (i % 4) * 3) * T + 4, ly = c.py + (2 + Math.floor(i / 4)) * T + 2;
+      const on = 0.35 + 0.65 * Math.abs(Math.sin(t * 0.004 + i * 1.7));
+      ctx.fillStyle = 'rgba(80,220,255,' + on.toFixed(2) + ')';
+      ctx.fillRect(lx, ly, 4, 4);
+    }
+  }
+  function drawPoolBalls() {
+    const c = G17.state.manifest.chunks.find(c => c.id === 'arcade_billiards'); if (!c) return;
+    const bx = c.px + 4 * T, by = c.py + 5.8 * T;
+    const cols = ['#ffd166', '#ef476f', '#06d6a0', '#118ab2', '#f78c6b', '#e7e9ea'];
+    for (let i = 0; i < 6; i++) {
+      ctx.fillStyle = cols[i];
+      ctx.beginPath(); ctx.arc(bx + (i % 3) * 9, by + Math.floor(i / 3) * 9, 2.8, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+  function stepDialogue(dt) {
+    O.dialogueT -= dt;
+    if (O.dialogueT > 0) return;
+    O.dialogueT = 14 + Math.random() * 14;
+    const who = Math.random() < 0.5 ? O.j : O.h;
+    const pool = (who === O.j ? DIALOGUE_PUDDLE.J : DIALOGUE_PUDDLE.H) || [];
+    if (who && pool.length) O.bubbles.push({ x: who.x, y: who.y - 52, text: pick(pool), until: performance.now() + 4200, follow: null });
+  }
+  function drawBubbles() {
+    const now = performance.now();
+    O.bubbles = O.bubbles.filter(b => b.until > now);
+    ctx.save();
+    ctx.font = '10px monospace'; ctx.textAlign = 'center';
+    for (const b of O.bubbles) {
+      let bx = b.x, by = b.y;
+      if (b.follow && ISO.agents.indexOf(b.follow) >= 0) { bx = b.follow.x; by = b.follow.y - 62; }
+      const w = Math.min(ctx.measureText(b.text).width + 14, 240);
+      ctx.fillStyle = 'rgba(20,22,34,0.88)';
+      ctx.beginPath(); ctx.roundRect(bx - w / 2, by - 15, w, 19, 6); ctx.fill();
+      ctx.fillStyle = '#ffe9c9';
+      ctx.fillText(b.text, bx, by - 2, w - 10);
+    }
+    ctx.textAlign = 'left';
+    ctx.restore();
+  }
+  const SIDE = {
+    zillion: { left: 2, right: '2f' }, marcus: { left: '2f', right: 2 }, aria: { left: 2, right: '2f' },
+    cody: { left: 2, right: '2f' }, pixel: { left: '2f', right: 2 }, echo: { left: '2f', right: 2 },
+    vortex: { left: '2f', right: 2 }, jax: { left: 2, right: '2f' }, vanguard: { left: 3, right: 2 },
+    chronos: { left: '2f', right: 2 }
+  };
+  function drawOrbitAgent(a, t) {
+    const p = orbitAgentPos(a, t); if (!p) return;
+    const dir = (typeof dirSprites !== 'undefined') ? dirSprites[a.id] : null;
+    if (!dir || !((dir.complete && dir.naturalWidth > 0) || dir.width > 0)) return;
+    const ROW = { down: 0, up: 1, left: 2, right: 3 };
+    let row = ROW[a.facing] !== undefined ? ROW[a.facing] : 0, flip = false;
+    if (a.facing === 'left' || a.facing === 'right') {
+      const m = (SIDE[a.id] || { left: 2, right: '2f' })[a.facing];
+      if (m === 2 || m === 3) { row = m; flip = false; } else { row = 2; flip = true; }
+    }
+    const dwAll = dir.naturalWidth || dir.width, dhAll = dir.naturalHeight || dir.height;
+    const fw = dwAll / 3, fh = dhAll / 4;
+    const sx = 0 * fw, sy = row * fh;
+    const targetH = 34, scaleF = targetH / fh, dw = fw * scaleF, dh = fh * scaleF;
+    const bob = Math.sin(t * 0.002 + a.x * 0.7) * 0.6;
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.fillStyle = 'rgba(0,0,0,0.22)';
+    ctx.beginPath(); ctx.ellipse(0, 4, 11, 3.6, 0, 0, Math.PI * 2); ctx.fill();
+    if (flip) ctx.scale(-1, 1);
+    ctx.drawImage(dir, sx, sy, fw, fh, -dw / 2, -dh + 3 + bob, dw, dh);
+    ctx.restore();
+    ctx.fillStyle = '#ffffff'; ctx.font = 'bold 9px monospace';
+    ctx.shadowColor = '#000000'; ctx.shadowBlur = 3;
+    ctx.fillText(a.name, p.x - (a.name.length * 2.7), p.y + 12 + bob);
+    ctx.shadowBlur = 0;
+  }
+  function renderOrbit(t) {
+    const s = zoomScale * (window.__fitScale || 1);
+    const m = G17.state.manifest;
+    ctx.save();
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.translate(canvas.width / 2, canvas.height / 2);
+    ctx.scale(s, s);
+    ctx.translate(-G17.state.cam.x, -G17.state.cam.y);
+    const wp = G17.worldPx();
+    ctx.fillStyle = '#0d0d16';
+    ctx.fillRect(-200, -200, wp.w + 400, wp.h + 400);
+    for (const cd of (m.corridors || [])) {
+      const img = O.art.corridor_seg;
+      if (img && img.complete && img.naturalWidth) {
+        for (let i = 0; i < cd.w; i++) ctx.drawImage(img, cd.x + i * T, cd.y, T, T);
+      } else {
+        ctx.fillStyle = '#1a1a28';
+        ctx.fillRect(cd.x, cd.y, cd.w * T, 4 * T);
+      }
+    }
+    for (const c of m.chunks) {
+      const ch = ORBIT_CHUNKS[c.id];
+      const img = O.art[c.id];
+      if (img && img.complete && img.naturalWidth) {
+        ctx.drawImage(img, c.px, c.py, ch.w * T, ch.h * T);
+      } else {
+        ctx.fillStyle = '#23233a';
+        ctx.fillRect(c.px, c.py, ch.w * T, ch.h * T);
+        ctx.fillStyle = '#555'; ctx.font = '10px monospace';
+        ctx.fillText(c.id, c.px + 4, c.py + 12);
+      }
+    }
+    drawKoi(t); drawLEDS(t); drawPoolBalls();
+    drawBot(O.j); drawBot(O.h);
+    for (const a of agents) drawOrbitAgent(a, t);
+    drawBubbles();
+    ctx.restore();
+  }
+
+  /* ---- DESIGN PROJECT — assigned to PIXEL (G17.5) ----
+     Boss: "assign mo sa designer natin" — Pixel takes the office-layout
+     brief via the 8090 gateway (her concepts), works it in-game, and
+     delivers 5 mockups on the design wall. Not Zillion-generated art. */
+  const PROJ = {
+    title: 'OFFICE LAYOUT v3 · 15 employees · clean · mobile',
+    assignee: 'pixel',
+    phase: 'idle', progress: 0, workTime: 40, cardT: 0, doneT: 0,
+    target: null,
+    concepts: [
+      { name: 'Central Corridor', layout: 'corridor' },
+      { name: 'Pods of 4', layout: 'pods' },
+      { name: 'Dense Grid', layout: 'grid' },
+      { name: 'Lounge & Meeting', layout: 'lounge' },
+      { name: 'Private Office', layout: 'exec' }
+    ]
+  };
+  G17.PROJ = PROJ;
+  function designChunkRect() {
+    const c = G17.state.manifest.chunks.find(cc => cc.id === 'office_design');
+    if (!c) return null;
+    const ch = ORBIT_CHUNKS.office_design;
+    return { x: c.px, y: c.py, w: ch.w * T, h: ch.h * T };
+  }
+  function projBubble(x, y, text) {
+    O.bubbles.push({ x, y: y - 52, text, until: performance.now() + 4200, follow: null });
+  }
+  function startProject() {
+    if (PROJ.phase !== 'idle') return;
+    const r = designChunkRect(); if (!r) return;
+    PROJ.target = { x: r.x + r.w * 0.5, y: r.y + r.h * 0.26 };
+    PROJ.phase = 'toWork'; PROJ.progress = 0; PROJ.cardT = 0; PROJ.doneT = 0;
+    if (G17.chat.pushBubble) G17.chat.pushBubble({ from: 'zillion', kind: 'ai',
+      text: 'In-assign ko si Pixel sa ' + PROJ.title + ' — design niya, hindi ko. Stay tuned, Boss! 🎨' });
+  }
+  function stepProject(dt, agents) {
+    if (PROJ.phase === 'idle') return;
+    const px = agents.find(a => a.id === PROJ.assignee);
+    if (!px) return;
+    if (PROJ.phase === 'toWork') {
+      const dx = PROJ.target.x - px.x, dy = PROJ.target.y - px.y;
+      const d = Math.hypot(dx, dy), sp = 46 * dt;
+      if (d < 6) {
+        px.x = PROJ.target.x; px.y = PROJ.target.y; px.facing = 'up';
+        PROJ.phase = 'working';
+        projBubble(px.x, px.y, 'Sketching na... 15 seats, clean design!');
+      } else {
+        px.x += dx / d * Math.min(sp, d); px.y += dy / d * Math.min(sp, d);
+        px.facing = Math.abs(dx) > Math.abs(dy) * 1.3 ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
+      }
+    } else if (PROJ.phase === 'working') {
+      PROJ.progress += dt / PROJ.workTime;
+      if (PROJ.progress >= 1) {
+        PROJ.progress = 1; PROJ.phase = 'done';
+        projBubble(px.x, px.y, 'Tapos na! 5 mockups sa wall. — Pixel');
+        if (G17.chat.pushBubble) G17.chat.pushBubble({ from: 'pixel', kind: 'ai',
+          text: 'Naka-deliver na ang 5 office layout mockups (15 employees, clean, mobile). Look sa design wall, Boss! 🎨' });
+      } else if (Math.random() < dt * 0.09) {
+        projBubble(px.x, px.y, pick([
+          'Sketching layout 2/5...', '15 desks na, counting them...',
+          'Adding plants para clean yung vibe.', 'Meeting room + kitchenette check.',
+          'Flow ng 15 employees — walang dead-end.', 'Private office, medyo maliit pero maganda.'
+        ]));
+      }
+    } else if (PROJ.phase === 'done') {
+      PROJ.cardT = Math.min(1, PROJ.cardT + dt / 2.5);
+      PROJ.doneT += dt;
+      if (PROJ.doneT > 25) PROJ.phase = 'back'; // she goes back to drifting; cards stay on wall
+    }
+  }
+  /* pixel hands off position control to the project while it runs */
+  const _origOrbitAgentPos = orbitAgentPos;
+  orbitAgentPos = function (a, t) {
+    if (PROJ.phase !== 'idle' && a.id === PROJ.assignee) return { x: a.x, y: a.y, vx: 0, vy: 0 };
+    return _origOrbitAgentPos(a, t);
+  };
+  function deskDot(x, y) {
+    ctx.fillStyle = '#c9b892'; ctx.fillRect(x - 3.4, y - 5, 6.8, 10);
+    ctx.fillStyle = '#3c4048'; ctx.fillRect(x - 2.6, y - 7, 5.2, 2.6);
+  }
+  function drawMiniLayout(x, y, w, h, kind) {
+    ctx.fillStyle = '#f4efe4'; ctx.fillRect(x, y, w, h);
+    ctx.strokeStyle = '#878d96'; ctx.lineWidth = 2; ctx.strokeRect(x + 1, y + 1, w - 2, h - 2);
+    const ix = x + 5, iy = y + 5, iw = w - 10, ih = h - 10;
+    ctx.fillStyle = '#d9e2ea'; ctx.fillRect(ix, iy, iw * 0.42, ih * 0.14);          // kitchenette
+    ctx.fillStyle = '#cfd8de'; ctx.fillRect(ix + iw * 0.58, iy, iw * 0.42, ih * 0.14); // meeting
+    ctx.fillStyle = '#e8d9b8'; ctx.fillRect(ix + iw * 0.3, iy + ih * 0.84, iw * 0.4, ih * 0.12); // reception
+    ctx.fillStyle = '#b9c7b1'; ctx.fillRect(ix + iw * 0.04, iy + ih * 0.42, iw * 0.14, ih * 0.22); // lounge
+    const DESKS = {
+      corridor: [[0.2, 0.3], [0.2, 0.42], [0.2, 0.54], [0.2, 0.66], [0.2, 0.78], [0.5, 0.3], [0.5, 0.42], [0.5, 0.54], [0.5, 0.66], [0.5, 0.78], [0.8, 0.3], [0.8, 0.42], [0.8, 0.54], [0.8, 0.66], [0.8, 0.78]],
+      pods: [[0.2, 0.3], [0.36, 0.3], [0.2, 0.44], [0.36, 0.44], [0.64, 0.3], [0.8, 0.3], [0.64, 0.44], [0.8, 0.44], [0.2, 0.62], [0.36, 0.62], [0.2, 0.76], [0.36, 0.76], [0.64, 0.62], [0.8, 0.62], [0.72, 0.76]],
+      grid: [[0.18, 0.32], [0.34, 0.32], [0.5, 0.32], [0.66, 0.32], [0.82, 0.32], [0.18, 0.5], [0.34, 0.5], [0.5, 0.5], [0.66, 0.5], [0.82, 0.5], [0.18, 0.68], [0.34, 0.68], [0.5, 0.68], [0.66, 0.68], [0.82, 0.68]],
+      lounge: [[0.18, 0.3], [0.18, 0.44], [0.18, 0.58], [0.34, 0.3], [0.34, 0.44], [0.34, 0.58], [0.66, 0.3], [0.66, 0.44], [0.66, 0.58], [0.82, 0.3], [0.82, 0.44], [0.82, 0.58], [0.5, 0.3], [0.5, 0.44], [0.5, 0.58]],
+      exec: [[0.18, 0.3], [0.34, 0.3], [0.5, 0.3], [0.66, 0.3], [0.82, 0.3], [0.18, 0.46], [0.34, 0.46], [0.5, 0.46], [0.66, 0.46], [0.82, 0.46], [0.18, 0.62], [0.34, 0.62], [0.5, 0.62], [0.66, 0.62], [0.82, 0.76]]
+    };
+    for (const [gx, gy] of (DESKS[kind] || DESKS.grid)) deskDot(ix + gx * iw, iy + gy * ih);
+    if (kind === 'exec') { ctx.strokeStyle = '#878d96'; ctx.lineWidth = 1.4; ctx.strokeRect(ix + iw * 0.62, iy + ih * 0.62, iw * 0.34, ih * 0.26); }
+    ctx.fillStyle = '#6fa06f';
+    for (const [gx, gy] of [[0.07, 0.26], [0.93, 0.72], [0.5, 0.8]]) { ctx.beginPath(); ctx.arc(ix + gx * iw, iy + gy * ih, 2, 0, 7); ctx.fill(); }
+  }
+  function drawProjectUI() {
+    const r = designChunkRect(); if (!r) return;
+    if (PROJ.phase === 'working') {
+      const bx = r.x + r.w / 2 - 46, by = r.y + 4;
+      ctx.fillStyle = 'rgba(18,20,30,0.88)'; ctx.fillRect(bx, by, 92, 14);
+      ctx.fillStyle = '#7ee787'; ctx.fillRect(bx + 2, by + 2, 88 * PROJ.progress, 10);
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 8px monospace'; ctx.textAlign = 'center';
+      ctx.fillText('Pixel designing: ' + Math.round(PROJ.progress * 100) + '%', bx + 46, by + 10);
+      ctx.textAlign = 'left';
+    }
+    if (PROJ.phase === 'done' || PROJ.phase === 'back') {
+      const n = PROJ.concepts.length;
+      const cw = r.w * 0.15, chh = cw * 1.6;
+      const x0 = r.x + (r.w - (n * cw + (n - 1) * cw * 0.24)) / 2, y0 = r.y + r.h * 0.05;
+      window.__projCard = { r: [r.x, r.y, r.w, r.h], x0, y0, cw, chh, cardT: PROJ.cardT, err: '' };
+      try {
+      for (let i = 0; i < n; i++) {
+        const k = Math.max(0, Math.min(1, PROJ.cardT * (n + 1) - i));
+        if (k <= 0) continue;
+        const x = x0 + i * cw * 1.24;
+        ctx.save(); ctx.globalAlpha = k;
+        drawMiniLayout(x, y0, cw, chh, PROJ.concepts[i].layout);
+        ctx.font = 'bold 7px monospace'; ctx.textAlign = 'center';
+        ctx.fillStyle = '#23262e'; ctx.shadowColor = '#ffffff'; ctx.shadowBlur = 2;
+        ctx.fillText(PROJ.concepts[i].name, x + cw / 2, y0 + chh + 8);
+        ctx.shadowBlur = 0; ctx.textAlign = 'left';
+        ctx.restore();
+      }
+      } catch (e) { window.__projCard.err = String(e); }
+    }
+  }
+
+  /* ---- chevrons ---- */
+  function setChev(k, on) { const el = document.getElementById('chev-' + k); if (el) el.classList.toggle('on', !!on); }
+  function updateChevrons() {
+    if (!G17.active) return;
+    const s = zoomScale * (window.__fitScale || 1);
+    const vw = canvas.width / s, vh = canvas.height / s;
+    const wp = G17.worldPx();
+    setChev('L', wp.w > vw); setChev('R', wp.w > vw); setChev('T', wp.h > vh); setChev('B', wp.h > vh);
+  }
+
+  /* ---- AI-CHAT card wiring (glass card → gateway :8090 model zillion) ---- */
+  function wireChat() {
+    const fab = document.getElementById('g17-chat-fab'), card = document.getElementById('g17-chat-card');
+    const feed = document.getElementById('chat-feed'), input = document.getElementById('chat-input'), send = document.getElementById('chat-send');
+    if (!fab || !card) return;
+    G17.chat.pushBubble = function (m) {
+      const d = document.createElement('div');
+      d.className = 'chat-b ' + (m.kind || '');
+      const ts = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const who = m.from === 'boss' ? 'Boss' : (m.from === 'zillion' ? 'Zillion' : 'sys');
+      d.innerHTML = '<span class="chat-ts">' + ts + '</span> <b>' + who + '</b>: ' + escapeHtml(m.text);
+      feed.appendChild(d); feed.scrollTop = feed.scrollHeight;
+      while (feed.children.length > 60) feed.removeChild(feed.firstChild);
+    };
+    fab.onclick = () => { card.classList.add('open'); fab.style.display = 'none'; input.focus(); };
+    const close = () => { card.classList.remove('open'); fab.style.display = 'flex'; };
+    const mn = document.getElementById('chat-min'); if (mn) mn.onclick = close;
+    const xx = document.getElementById('chat-x'); if (xx) xx.onclick = close;
+    const go = async () => { const v = input.value.trim(); if (!v) return; input.value = ''; await G17.chat.send(v); };
+    send.onclick = go;
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+    const hdr = document.getElementById('chat-header');
+    if (hdr) hdr.addEventListener('pointerdown', e => {
+      if (e.target.tagName === 'BUTTON') return;
+      const r = card.getBoundingClientRect();
+      const mv = ev => {
+        card.style.right = Math.max(0, r.right - ev.clientX) + 'px';
+        card.style.bottom = Math.max(0, r.bottom - ev.clientY) + 'px';
+        card.style.left = 'auto'; card.style.top = 'auto';
+      };
+      const up = () => { window.removeEventListener('pointermove', mv); window.removeEventListener('pointerup', up); };
+      window.addEventListener('pointermove', mv); window.addEventListener('pointerup', up);
+    });
+    G17.chat.pushBubble({ from: 'zillion', text: 'Kumusta Boss! ARENA ORBIT v2 (isometric) ready. Gateway 8090 live.', kind: 'ai' });
+  }
+
+  /* ---- arcade hit → openArcade() ---- */
+  function wireArcadeHit() {
+    canvas.addEventListener('pointerdown', e => {
+      if (!G17.active) return;
+      const rect = canvas.getBoundingClientRect();
+      if (!rect.width) return;
+      const px = (e.clientX - rect.left) * (canvas.width / rect.width);
+      const py = (e.clientY - rect.top) * (canvas.height / rect.height);
+      const s = zoomScale * (window.__fitScale || 1);
+      const wx = (px - canvas.width / 2) / s + G17.state.cam.x;
+      const wy = (py - canvas.height / 2) / s + G17.state.cam.y;
+      if (G17.state.isoMode) {
+        if (wx >= 40 && wx <= 480 && wy >= 120 && wy <= 430) setTimeout(openArcade, 0);
+        return;
+      }
+      const c = G17.state.manifest.chunks.find(c => c.id === 'arcade_billiards');
+      if (!c) return;
+      const ch = ORBIT_CHUNKS.arcade_billiards;
+      if (wx >= c.px && wx <= c.px + ch.w * T && wy >= c.py && wy <= c.py + ch.h * T) openArcade();
+    }, true);
+  }
+
+  /* ---- boot ---- */
+  async function boot() {
+    try {
+      for (const [k, src] of Object.entries(ART)) O.art[k] = await loadImg(src);
+      O.art.bot_janitor = await loadImg('orbit/bot_janitor.png');
+      O.art.bot_helper = await loadImg('orbit/bot_helper.png');
+      const man = ORBIT_MANIFESTS[G17.pickManifest()];
+      G17.state.manifest = man;
+      G17.anchorChunks(man);
+      const ca = man.camAnchor;
+      camX = ca.x; camY = ca.y;
+      G17.state.cam.x = ca.x; G17.state.cam.y = ca.y;
+      let isoOK = false;
+      if (G17.state.isoMode) isoOK = await bootISO();
+      if (isoOK) { G17.state.isoMode = true; }
+      else if (G17.state.isoMode) { console.warn('[G17ISO] falling back to top-down'); G17.state.isoMode = false; buildBots(); }
+      G17.active = true;
+      console.log('[G17] ARENA ORBIT live ·', man.orient, isoOK ? '· ISOMETRIC' : '');
+      wireChat(); wireArcadeHit(); wirePan(); updateChevrons();
+      setTimeout(recenter, 2600);
+      setTimeout(recenter, 6000);
+      if (!isoOK) setTimeout(startProject, 4000); // Boss-assigned: Pixel takes the office-layout brief
+    } catch (e) { console.warn('[G17] boot failed:', e); }
+  }
+
+  /* ---- own pan handler ---- */
+  function wirePan() {
+    let drag = null;
+    canvas.addEventListener('pointerdown', e => {
+      if (!G17.active) return;
+      drag = { x: e.clientX, y: e.clientY, moved: 0 };
+      ISO.camFocus = null;
+      /* click-to-focus: nearest iso agent */
+      if (G17.state.isoMode) {
+        const rect = canvas.getBoundingClientRect();
+        const s = zoomScale * (window.__fitScale || 1);
+        const wx = ((e.clientX - rect.left) * (canvas.width / rect.width) - canvas.width / 2) / s + G17.state.cam.x;
+        const wy = ((e.clientY - rect.top) * (canvas.height / rect.height) - canvas.height / 2) / s + G17.state.cam.y;
+        let best = null, bd = 34;
+        for (const a of ISO.agents) {
+          const d = Math.hypot(a.x - wx, a.y - wy);
+          if (d < bd) { bd = d; best = a; }
+        }
+        if (best) ISO.camFocus = { a: best, until: performance.now() + 7000 };
+      }
+    }, true);
+    window.addEventListener('pointermove', e => {
+      if (!drag || !G17.active) return;
+      const rect = canvas.getBoundingClientRect();
+      const k = (canvas.width / rect.width) / (zoomScale * (window.__fitScale || 1));
+      G17.state.cam.x -= (e.clientX - drag.x) * k;
+      G17.state.cam.y -= (e.clientY - drag.y) * k;
+      drag.moved += Math.abs(e.clientX - drag.x) + Math.abs(e.clientY - drag.y);
+      drag.x = e.clientX; drag.y = e.clientY;
+      if (drag.moved > 6) ISO.camFocus = null;
+      G17.clampCam();
+    }, true);
+    window.addEventListener('pointerup', () => { drag = null; }, true);
+  }
+  G17.clampCam = function () {
+    const P = this.worldPx();
+    const s = zoomScale * (window.__fitScale || 1);
+    const vw = canvas.width / s, vh = canvas.height / s;
+    const c = this.state.cam;
+    c.x = P.w >= vw ? Math.max(vw / 2 - 12, Math.min(c.x, P.w - vw / 2 + 12)) : P.w / 2;
+    c.y = P.h >= vh ? Math.max(vh / 2 - 12, Math.min(c.y, P.h - vh / 2 + 12)) : P.h / 2;
+  };
+  function recenter() {
+    const P = G17.worldPx();
+    G17.state.cam.x = P.w / 2; G17.state.cam.y = P.h / 2;
+    G17.clampCam();
+    camX = G17.state.cam.x; camY = G17.state.cam.y;
+  }
+
+  /* ---- render monkey-patch ---- */
+  const _origRender = render;
+  render = function () {
+    if (G17.active) {
+      G17.clampCam();
+      camX = G17.state.cam.x; camY = G17.state.cam.y;
+      const now = performance.now();
+      const dt = Math.min(0.05, (now - (O.lastT || now)) / 1000);
+      O.lastT = now;
+      if (G17.state.isoMode) {
+        /* smooth camera follow */
+        if (ISO.camFocus && ISO.camFocus.until > now) {
+          const a = ISO.camFocus.a;
+          G17.state.cam.x += (a.x - G17.state.cam.x) * 0.06;
+          G17.state.cam.y += (a.y - 40 - G17.state.cam.y) * 0.06;
+          G17.clampCam();
+        }
+        for (const a of ISO.agents) { stepWill(a, now); stepMove(a, dt, now); }
+        stepBots(now);
+        for (const b of [ISO.j, ISO.h]) if (b) stepMove(b, dt, now);
+        stepSocial(now);
+        renderOrbitISO(now, zoomScale * (window.__fitScale || 1));
+      } else {
+        stepBot(O.j, dt); stepBot(O.h, dt); stepDialogue(dt);
+        /* G17.5 work schedule: office hours → walk to & hold own designated wp (re-path via A*, no clip) */
+        if (officeHoursNow()) for (const a of agents) {
+          const h = (a.homeWp = a.homeWp || WP_HOME[a.id] || a.wp);
+          if (a.targetWp !== h) { a.targetWp = h; a.path = null; }
+        }
+        stepProject(dt, agents);
+        renderOrbit(now);
+        if (PROJ.phase !== 'idle') {
+          const s = zoomScale * (window.__fitScale || 1);
+          ctx.save();
+          ctx.translate(canvas.width / 2, canvas.height / 2);
+          ctx.scale(s, s);
+          ctx.translate(-G17.state.cam.x, -G17.state.cam.y);
+          drawProjectUI();
+          ctx.restore();
+        }
+      }
+    } else {
+      _origRender();
+    }
+  };
+
+  if (typeof focusZone !== 'undefined') {
+    const _origFocusZone = focusZone;
+    focusZone = function (zone) {
+      if (G17.active && G17.state.isoMode) {
+        const map = { exec: [836, 780], dev_desks: [255, 720], war_room: [1430, 460],
+                      lounge: [1350, 780], arcade: [255, 280], gym: [1430, 690], pantry: [1350, 780] };
+        const p = map[zone];
+        if (p) {
+          G17.state.cam.x = p[0]; G17.state.cam.y = p[1];
+          G17.clampCam(); camX = G17.state.cam.x; camY = G17.state.cam.y;
+          if (zone === 'arcade') setTimeout(() => openArcade(), 400);
+          return;
+        }
+      }
+      if (G17.active) {
+        const map2 = { exec: 'reception', dev_desks: 'office_dev', war_room: 'office_design',
+                       lounge: 'cafe', arcade: 'arcade_billiards', gym: 'fitness', pantry: 'cafe' };
+        const chunkId = map2[zone];
+        if (chunkId) {
+          const c = G17.state.manifest.chunks.find(c => c.id === chunkId);
+          if (c) {
+            const ch = ORBIT_CHUNKS[chunkId];
+            G17.state.cam.x = c.px + (ch.w * T) / 2;
+            G17.state.cam.y = c.py + (ch.h * T) / 2;
+            G17.clampCam();
+            camX = G17.state.cam.x; camY = G17.state.cam.y;
+            if (zone === 'arcade') setTimeout(() => openArcade(), 400);
+            return;
+          }
+        }
+      }
+      return _origFocusZone(zone);
+    };
+  }
+
+  let resizeT = null;
+  window.addEventListener('resize', () => {
+    if (!G17.active) return;
+    clearTimeout(resizeT);
+    resizeT = setTimeout(() => {
+      G17.reflowTo(G17.pickManifest());
+      if (G17.state.isoMode) recenter(); else buildBots();
+      updateChevrons();
+    }, 150);
+  });
+  if (screen.orientation && screen.orientation.addEventListener) {
+    screen.orientation.addEventListener('change', () => { if (G17.active) { G17.reflowTo(G17.pickManifest()); if (G17.state.isoMode) recenter(); else buildBots(); updateChevrons(); } });
+  }
+
+  /* live switch (console/remote): G17.isoOff() / G17.isoOn() */
+  G17.resetProject = function () { PROJ.phase = 'idle'; setTimeout(startProject, 600); return 'project restarted (Pixel)'; };
+  G17.isoOff = function () { G17.state.isoMode = false; buildBots(); recenter(); return 'iso OFF (top-down)'; };
+  G17.isoOn = function () {
+    if (G17.state.isoMode) return 'iso already ON';
+    if (!G17.active) return 'game not active yet';
+    if (ISO.agents.length) { G17.state.isoMode = true; recenter(); return 'iso ON'; }
+    bootISO().then(ok => { if (ok) { G17.state.isoMode = true; recenter(); } });
+    return 'iso loading...';
+  };
+
+  /* Boss decision 2026-08-30: default = TOP-DOWN (G17.3). Iso is experimental: open with ?iso=1 or G17.isoOn() */
+  G17.state.isoMode = String(location.search).includes('iso=1');
+  boot();
 })();
 </script>
 </body>

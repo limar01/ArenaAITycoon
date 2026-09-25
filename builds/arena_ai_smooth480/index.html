@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>ARENA AI TYCOON — Kanban Task Delegation</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;user-select:none;-webkit-user-select:none}
+body{background:#0a0a14;color:#fff;font-family:monospace;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh}
+#wrap{background:#111;border:2px solid #3d3d66;border-radius:6px;overflow:hidden;position:relative}
+canvas{display:block;image-rendering:pixelated}
+#ui{padding:6px 10px;background:#151524;display:flex;gap:12px;align-items:center;font-size:11px}
+.clock{color:#00ffff}.cash{color:#ffcc00}.day{color:#b878f8}
+button{background:#25253d;border:1px solid #5a5a88;color:#fff;padding:3px 8px;border-radius:3px;cursor:pointer;font-size:10px;font-family:monospace}
+button:hover{background:#3d3d66;border-color:#00ffff}
+button.kanban-btn{background:#2a1a4a;border-color:#b878f8}
+button.kanban-btn:hover{background:#3d2a5a;border-color:#b878f8}
+#bubble{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(20,20,40,0.95);border:1px solid #5a5a88;border-radius:6px;padding:8px 12px;font-size:11px;max-width:260px;text-align:center;display:none;z-index:10}
+#kanban{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(10,10,20,0.97);z-index:20;display:none;overflow-y:auto;padding:12px}
+#kanban h2{text-align:center;color:#b878f8;font-size:14px;margin-bottom:8px}
+.kanban-cols{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.kanban-col{background:#1a1a2e;border:1px solid #3d3d66;border-radius:4px;padding:6px}
+.kanban-col h3{font-size:10px;text-align:center;padding:4px;margin-bottom:6px;border-radius:3px}
+.kanban-col.backlog h3{background:#3a3a5a;color:#aaa}
+.kanban-col.todo h3{background:#2a4a6a;color:#88ccff}
+.kanban-col.doing h3{background:#4a3a1a;color:#ffcc00}
+.kanban-col.done h3{background:#1a4a2a;color:#88ff88}
+.kanban-card{background:#25253d;border:1px solid #5a5a88;border-radius:3px;padding:6px;margin-bottom:6px;font-size:9px}
+.kanban-card .role-tag{display:inline-block;padding:1px 4px;border-radius:2px;font-size:8px;margin-bottom:3px}
+.kanban-card .task-name{color:#fff;margin-bottom:2px}
+.kanban-card .assignee{color:#888;font-size:8px}
+.role-zillion{background:#1a1a2e;color:#b878f8}
+.role-marcus{background:#4a2a1a;color:#ffaa66}
+.role-aria{background:#6a2aaa;color:#dd88ff}
+.role-cody{background:#2a2a4a;color:#88aaff}
+.role-pixel{background:#2a4a2a{color:#88ff88}
+.role-echo{background:#2a1a3a;color:#aa88ff}
+.role-vortex{background:#1a1a3a;color:#00ffff}
+.role-jax{background:#4a3a2a;color:#ffaa44}
+.role-vanguard{background:#1a1a1a;color:#ff8888}
+.role-chronos{background:#2a2a4a;color:#aaccff}
+#kanban-stats{display:flex;justify-content:center;gap:16px;font-size:10px;margin-bottom:10px}
+#kanban-stats span{color:#888}
+#kanban-close{display:block;margin:0 auto;background:#2a1a4a;border-color:#b878f8}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="c" width="640" height="480"></canvas>
+  <div id="bubble"></div>
+  <div id="kanban">
+    <h2>📋 KANBAN BOARD — SPRINT 1</h2>
+    <div id="kanban-stats"></div>
+    <div class="kanban-cols">
+      <div class="kanban-col backlog"><h3>📥 BACKLOG</h3><div id="col-backlog"></div></div>
+      <div class="kanban-col todo"><h3>📝 TODO</h3><div id="col-todo"></div></div>
+      <div class="kanban-col doing"><h3>🔄 IN PROGRESS</h3><div id="col-doing"></div></div>
+      <div class="kanban-col done"><h3>✅ DONE</h3><div id="col-done"></div></div>
+    </div>
+    <button id="kanban-close" onclick="toggleKanban()">CLOSE</button>
+  </div>
+</div>
+<div id="ui">
+  <span class="clock" id="clock">08:00</span>
+  <span class="day" id="day">MON</span>
+  <span class="cash" id="cash">$48,500</span>
+  <button onclick="setSpeed(1)">1x</button>
+  <button onclick="setSpeed(3)">3x</button>
+  <button onclick="setSpeed(5)">5x</button>
+  <button onclick="togglePause()">PAUSE</button>
+  <button class="kanban-btn" onclick="toggleKanban()">📋 KANBAN</button>
+</div>
+
+<script>
+// ===== CORE =====
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const TILE = 16, COLS = 40, ROWS = 30;
+let speedMul = 1, paused = false, showBubble = null, kanbanOpen = false;
+
+// ===== OFFICE MAP =====
+const MAP = [
+"WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW",
+"W......................................W",
+"W......................................W",
+"W......................................W",
+"W..DDDDD............................DD..W",
+"W..DDDDD............................DD..W",
+"W..DDDDD............................DD..W",
+"W..DDDDD............................DD..W",
+"W..DDDDD............................DD..W",
+"W......................................W",
+"W......................................W",
+"W..........TTTTT.......................W",
+"W..........TTTTT...MM.........RRR......W",
+"W..........TTTTT...MM.........RRR......W",
+"W..............................RRR.....W",
+"W......................................W",
+"W..OOOOO..............................W",
+"W..OOOOO...........GGG................W",
+"W..OOOOO...........GGG................W",
+"W..................GGG................W",
+"W......................................W",
+"W......................................W",
+"W......................................W",
+"W......................................W",
+"W......................................W",
+"W......................................W",
+"W......................................W",
+"W......................................W",
+"W......................................W",
+"W......................................W",
+"WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW"
+];
+
+function isBlocked(cx, cy) {
+  if (cx < 0 || cx >= COLS || cy < 0 || cy >= ROWS) return true;
+  const c = MAP[cy][cx];
+  return c === 'W' || c === 'D' || c === 'T' || c === 'M' || c === 'O' || c === 'G' || c === 'R';
+}
+
+// ===== CONTINUOUS COLLISION (radius-based, catches furniture edges) =====
+// Agents have radius ~7px; this check samples the ring so diagonal slides
+// along furniture edges stay smooth instead of snagging on tile corners.
+const AGENT_R = 7;
+function solidAt(x, y, r) {
+  r = r || AGENT_R;
+  // sample 8 points around the circle
+  for (let i = 0; i < 8; i++) {
+    const ang = (i / 8) * Math.PI * 2;
+    const sx = x + Math.cos(ang) * r;
+    const sy = y + Math.sin(ang) * r;
+    const cx = Math.floor(sx / TILE);
+    const cy = Math.floor(sy / TILE);
+    if (cx < 0 || cx >= COLS || cy < 0 || cy >= ROWS) return true;
+    if (isBlocked(cx, cy)) return true;
+  }
+  // also check center
+  const cx = Math.floor(x / TILE);
+  const cy = Math.floor(y / TILE);
+  if (cx < 0 || cx >= COLS || cy < 0 || cy >= ROWS) return true;
+  if (isBlocked(cx, cy)) return true;
+  return false;
+}
+
+// ===== ZONES =====
+const ZONES = {
+  exec:   { x: 6*TILE, y: 5*TILE, label: 'EXEC' },
+  dev:    { x: 4*TILE, y: 5*TILE, label: 'DEV' },
+  war:    { x: 3*TILE, y: 8*TILE, label: 'WAR ROOM' },
+  pantry: { x: 14*TILE, y: 8*TILE, label: 'PANTRY' },
+  coffee: { x: 14*TILE, y: 12*TILE, label: 'COFFEE' },
+  pool:   { x: 10*TILE, y: 11*TILE, label: 'POOL' },
+  lounge: { x: 3*TILE, y: 16*TILE, label: 'LOUNGE' },
+  gym:    { x: 15*TILE, y: 16*TILE, label: 'GYM' },
+  server: { x: 25*TILE, y: 12*TILE, label: 'SERVER' }
+};
+
+// ===== ROLE DEFINITIONS =====
+// Each role has a zone, color, and list of tasks they can pull
+const ROLES = {
+  zillion: {
+    name: 'Zillion', title: 'Tech Director', zone: 'exec',
+    color: '#b878f8', skin: '#f5c6a0', hair: '#2a1a0a',
+    tasks: ['architecture', 'code_review', 'deploy', 'sprint_planning', 'tech_talk', 'debug']
+  },
+  marcus: {
+    name: 'Marcus', title: 'Producer', zone: 'war',
+    color: '#ffaa66', skin: '#e8b88a', hair: '#3a2a1a',
+    tasks: ['sprint_planning', 'standup', 'budget', 'team_sync', 'stakeholder', 'risk_analysis']
+  },
+  aria: {
+    name: 'Aria', title: 'Systems Designer', zone: 'dev',
+    color: '#dd88ff', skin: '#f0c0a0', hair: '#8a2aaa',
+    tasks: ['game_design', 'balance', 'level_design', 'narrative', 'ux_flow', 'documentation']
+  },
+  cody: {
+    name: 'Cody', title: 'Lead Programmer', zone: 'dev',
+    color: '#88aaff', skin: '#f5c6a0', hair: '#4a3a2a',
+    tasks: ['code', 'debug', 'code_review', 'refactor', 'deploy', 'architecture', 'optimize']
+  },
+  pixel: {
+    name: 'Pixel', title: 'Graphic Artist', zone: 'dev',
+    color: '#88ff88', skin: '#f0c0a0', hair: '#aa4a2a',
+    tasks: ['sprites', 'ui_design', 'animation', 'tileset', 'effects', 'polish']
+  },
+  echo: {
+    name: 'Echo', title: 'Audio Director', zone: 'lounge',
+    color: '#aa88ff', skin: '#e8b88a', hair: '#2a1a0a',
+    tasks: ['bgm', 'sfx', 'mixing', 'voice_direction', 'audio_impl', 'soundtrack']
+  },
+  vortex: {
+    name: 'Vortex', title: 'Shader Dev', zone: 'server',
+    color: '#00ffff', skin: '#f0c0a0', hair: '#00aaaa',
+    tasks: ['shaders', 'particles', 'gpu_optimize', 'post_process', 'lighting', 'vfx']
+  },
+  jax: {
+    name: 'Jax', title: 'QA Auditor', zone: 'war',
+    color: '#ffaa44', skin: '#f5c6a0', hair: '#3a2a1a',
+    tasks: ['qa_test', 'regression', 'bug_report', 'automation', 'stress_test', 'code_review']
+  },
+  vanguard: {
+    name: 'Vanguard', title: 'AAA Judge', zone: 'exec',
+    color: '#ff8888', skin: '#e8b88a', hair: '#5a5a5a',
+    tasks: ['audit', 'quality_gate', 'benchmark', 'approval', 'review', 'standards']
+  },
+  chronos: {
+    name: 'Chronos', title: 'Memory Anchor', zone: 'server',
+    color: '#aaccff', skin: '#f0c0a0', hair: '#aa8a6a',
+    tasks: ['documentation', 'memory_backup', 'context_sync', 'archive', 'knowledge_base', 'onboarding']
+  }
+};
+
+// ===== TASK TEMPLATES =====
+// Each task has: id, name, description, role (who can do it), zone (where), duration (seconds)
+const TASK_TEMPLATES = [
+  // Tech Director (Zillion)
+  { id: 'arch_1', name: 'Design system architecture', type: 'architecture', zone: 'exec', duration: 90 },
+  { id: 'arch_2', name: 'Review API endpoints', type: 'architecture', zone: 'dev', duration: 60 },
+  { id: 'deploy_1', name: 'Deploy build v2.1', type: 'deploy', zone: 'server', duration: 45 },
+  { id: 'sprint_1', name: 'Plan sprint backlog', type: 'sprint_planning', zone: 'war', duration: 60 },
+  { id: 'debug_1', name: 'Debug animation glitch', type: 'debug', zone: 'dev', duration: 75 },
+  // Producer (Marcus)
+  { id: 'standup_1', name: 'Daily standup meeting', type: 'standup', zone: 'war', duration: 30 },
+  { id: 'budget_1', name: 'Review Q4 budget', type: 'budget', zone: 'exec', duration: 60 },
+  { id: 'sync_1', name: 'Team sync meeting', type: 'team_sync', zone: 'war', duration: 45 },
+  { id: 'risk_1', name: 'Risk assessment report', type: 'risk_analysis', zone: 'exec', duration: 75 },
+  { id: 'stake_1', name: 'Stakeholder update', type: 'stakeholder', zone: 'exec', duration: 50 },
+  // Systems Designer (Aria)
+  { id: 'gdd_1', name: 'Write GDD section 4', type: 'game_design', zone: 'dev', duration: 90 },
+  { id: 'balance_1', name: 'Balance combat system', type: 'balance', zone: 'dev', duration: 75 },
+  { id: 'level_1', name: 'Design level 3 layout', type: 'level_design', zone: 'dev', duration: 80 },
+  { id: 'narrative_1', name: 'Write dialogue trees', type: 'narrative', zone: 'lounge', duration: 65 },
+  { id: 'ux_1', name: 'UX flow diagram', type: 'ux_flow', zone: 'dev', duration: 55 },
+  { id: 'docs_1', name: 'Update game docs', type: 'documentation', zone: 'server', duration: 40 },
+  // Lead Programmer (Cody)
+  { id: 'code_1', name: 'Implement NPC AI', type: 'code', zone: 'dev', duration: 120 },
+  { id: 'code_2', name: 'Build inventory system', type: 'code', zone: 'dev', duration: 100 },
+  { id: 'code_3', name: 'Integrate save/load', type: 'code', zone: 'server', duration: 85 },
+  { id: 'review_1', name: 'Review Pixel\'s PR', type: 'code_review', zone: 'dev', duration: 45 },
+  { id: 'refactor_1', name: 'Refactor pathfinding', type: 'refactor', zone: 'dev', duration: 70 },
+  { id: 'optimize_1', name: 'Optimize render loop', type: 'optimize', zone: 'dev', duration: 80 },
+  { id: 'debug_2', name: 'Fix collision bug', type: 'debug', zone: 'dev', duration: 60 },
+  // Graphic Artist (Pixel)
+  { id: 'sprite_1', name: 'Render character sprites', type: 'sprites', zone: 'dev', duration: 100 },
+  { id: 'sprite_2', name: 'Build tileset atlas', type: 'sprites', zone: 'dev', duration: 90 },
+  { id: 'ui_1', name: 'Design HUD layout', type: 'ui_design', zone: 'dev', duration: 75 },
+  { id: 'anim_1', name: 'Animate walk cycles', type: 'animation', zone: 'dev', duration: 85 },
+  { id: 'tile_1', name: 'Create office tileset', type: 'tileset', zone: 'dev', duration: 70 },
+  { id: 'fx_1', name: 'Add particle effects', type: 'effects', zone: 'dev', duration: 65 },
+  { id: 'polish_1', name: 'Polish UI elements', type: 'polish', zone: 'dev', duration: 50 },
+  // Audio Director (Echo)
+  { id: 'bgm_1', name: 'Compose office BGM', type: 'bgm', zone: 'lounge', duration: 90 },
+  { id: 'sfx_1', name: 'Design UI sounds', type: 'sfx', zone: 'lounge', duration: 70 },
+  { id: 'mix_1', name: 'Mix audio levels', type: 'mixing', zone: 'lounge', duration: 55 },
+  { id: 'voice_1', name: 'Direct voice acting', type: 'voice_direction', zone: 'lounge', duration: 80 },
+  { id: 'audio_1', name: 'Implement audio engine', type: 'audio_impl', zone: 'dev', duration: 65 },
+  { id: 'track_1', name: 'Record soundtrack', type: 'soundtrack', zone: 'lounge', duration: 100 },
+  // Shader Dev (Vortex)
+  { id: 'shader_1', name: 'Write GLSL shaders', type: 'shaders', zone: 'server', duration: 90 },
+  { id: 'particle_1', name: 'Build particle system', type: 'particles', zone: 'server', duration: 85 },
+  { id: 'gpu_1', name: 'GPU profiling', type: 'gpu_optimize', zone: 'server', duration: 60 },
+  { id: 'post_1', name: 'Post-processing FX', type: 'post_process', zone: 'server', duration: 75 },
+  { id: 'light_1', name: 'Dynamic lighting', type: 'lighting', zone: 'server', duration: 80 },
+  { id: 'vfx_1', name: 'VFX for arcade', type: 'vfx', zone: 'server', duration: 70 },
+  // QA Auditor (Jax)
+  { id: 'qa_1', name: 'Run QA test suite', type: 'qa_test', zone: 'war', duration: 80 },
+  { id: 'reg_1', name: 'Regression testing', type: 'regression', zone: 'war', duration: 90 },
+  { id: 'bug_1', name: 'Write bug reports', type: 'bug_report', zone: 'war', duration: 60 },
+  { id: 'auto_1', name: 'Build test automation', type: 'automation', zone: 'server', duration: 100 },
+  { id: 'stress_1', name: 'Stress test servers', type: 'stress_test', zone: 'server', duration: 70 },
+  { id: 'rev_1', name: 'Review Vanguard feedback', type: 'code_review', zone: 'exec', duration: 45 },
+  // AAA Judge (Vanguard)
+  { id: 'audit_1', name: 'Audit code quality', type: 'audit', zone: 'exec', duration: 90 },
+  { id: 'gate_1', name: 'Quality gate review', type: 'quality_gate', zone: 'exec', duration: 75 },
+  { id: 'bench_1', name: 'Run benchmarks', type: 'benchmark', zone: 'server', duration: 60 },
+  { id: 'approve_1', name: 'Approve build release', type: 'approval', zone: 'exec', duration: 45 },
+  { id: 'rev_2', name: 'Review sprint output', type: 'review', zone: 'war', duration: 65 },
+  { id: 'standard_1', name: 'Update AAA standards', type: 'standards', zone: 'exec', duration: 80 },
+  // Memory Anchor (Chronos)
+  { id: 'doc_1', name: 'Update documentation', type: 'documentation', zone: 'server', duration: 60 },
+  { id: 'backup_1', name: 'Backup memory files', type: 'memory_backup', zone: 'server', duration: 45 },
+  { id: 'sync_2', name: 'Sync agent context', type: 'context_sync', zone: 'server', duration: 55 },
+  { id: 'archive_1', name: 'Archive old builds', type: 'archive', zone: 'server', duration: 50 },
+  { id: 'kb_1', name: 'Build knowledge base', type: 'knowledge_base', zone: 'server', duration: 70 },
+  { id: 'onboard_1', name: 'Onboard new tools', type: 'onboarding', zone: 'exec', duration: 65 }
+];
+
+// ===== KANBAN BOARD (live + local fallback) =====
+const KANBAN = {
+  backlog: [],
+  todo: [],
+  doing: [],
+  done: [],
+  completed: 0,
+  total: 0
+};
+
+const KANBAN_API = "http://localhost:8765/api/kanban";
+const KANBAN_FALLBACK = true;  // keep simulated sprint if server unreachable
+let kanbanLive = false;
+let kanbanPollId = null;
+
+async function fetchLiveKanban() {
+  try {
+    const r = await fetch(KANBAN_API);
+    if (!r.ok) throw new Error("status " + r.status);
+    const board = await r.json();
+    kanbanLive = true;
+    // Normalize live card shape into what renderKanban() expects:
+    //   id, name, roleKey, roleName, assignee, duration, startTime, endTime
+    function norm(c) {
+      const roleName = c.assignee ? (ROLES[c.assignee] ? ROLES[c.assignee].title : c.assignee) : 'unassigned';
+      return {
+        id: c.id,
+        name: c.title,
+        roleKey: c.assignee || 'any',
+        roleName: roleName,
+        assignee: c.assignee || null,
+        duration: 60,            // live tasks have no fixed duration; show a placeholder
+        startTime: null,
+        endTime: null,
+      };
+    }
+    KANBAN.backlog = (board.backlog || []).map(norm);
+    KANBAN.todo    = (board.todo || []).map(norm);
+    KANBAN.doing   = (board.doing || []).map(norm);
+    KANBAN.done    = (board.done || []).map(norm);
+    KANBAN.total   = KANBAN.backlog.length + KANBAN.todo.length + KANBAN.doing.length + KANBAN.done.length;
+    KANBAN.completed = KANBAN.done.length;
+    renderKanban();
+  } catch (e) {
+    if (!kanbanLive) {
+      if (KANBAN.total === 0) generateSprint();
+    }
+  }
+}
+
+function startKanbanPolling() {
+  stopKanbanPolling();
+  // poll every 5s when open
+  kanbanPollId = setInterval(() => { fetchLiveKanban(); }, 5000);
+  fetchLiveKanban();  // immediate
+}
+
+function stopKanbanPolling() {
+  if (kanbanPollId) { clearInterval(kanbanPollId); kanbanPollId = null; }
+}
+
+// Simulated sprint fallback (used when live server unreachable on first open)
+function generateSprint() {
+  KANBAN.backlog = [];
+  KANBAN.todo = [];
+  KANBAN.doing = [];
+  KANBAN.done = [];
+  KANBAN.completed = 0;
+  KANBAN.total = 0;
+
+  const shuffled = [...TASK_TEMPLATES].sort(() => Math.random() - 0.5);
+  const selected = shuffled.slice(0, Math.min(20, shuffled.length));
+
+  for (const tmpl of selected) {
+    const roleKey = Object.keys(ROLES).find(k => ROLES[k].tasks.includes(tmpl.type));
+    const role = roleKey ? ROLES[roleKey] : null;
+    const task = {
+      ...tmpl,
+      roleKey: roleKey || null,
+      roleName: role?.title || 'Any',
+      assignee: null,
+      startTime: null,
+      endTime: null
+    };
+    KANBAN.backlog.push(task);
+    KANBAN.total++;
+  }
+
+  for (let i = 0; i < Math.min(8, KANBAN.backlog.length); i++) {
+    KANBAN.todo.push(KANBAN.backlog.shift());
+  }
+}
+
+// ===== AGENTS =====
+const agents = Object.keys(ROLES).map((id, i) => ({
+  id,
+  ...ROLES[id],
+  x: ZONES.exec.x, y: ZONES.exec.y,
+  path: null,
+  pathIdx: 0,
+  facing: 'down',
+  moving: false,
+  walkPhase: 0,
+  energy: 90 + Math.random()*10,
+  focus: 85 + Math.random()*15,
+  happiness: 80 + Math.random()*20,
+  currentTask: null,
+  taskProgress: 0,
+  phrase: "Kanban delegation active!"
+}));
+
+// ===== A* PATHFINDING =====
+function findPath(sx, sy, tx, ty) {
+  const start = [Math.floor(sx/TILE), Math.floor(sy/TILE)];
+  const goal = [Math.floor(tx/TILE), Math.floor(ty/TILE)];
+  
+  if (start[0] === goal[0] && start[1] === goal[1]) return [];
+  if (isBlocked(goal[0], goal[1])) return null;
+  
+  const open = new Map();
+  const came = new Map();
+  const gScore = new Map();
+  const fScore = new Map();
+  
+  const key = (x,y) => x + ',' + y;
+  const h = (x,y) => Math.abs(x-goal[0]) + Math.abs(y-goal[1]);
+  
+  gScore.set(key(start[0],start[1]), 0);
+  fScore.set(key(start[0],start[1]), h(start[0],start[1]));
+  open.set(key(start[0],start[1]), start);
+  
+  const dirs = [[0,-1],[0,1],[-1,0],[1,0]];
+  
+  while (open.size > 0) {
+    let best = null, bestF = Infinity;
+    for (const [k, v] of open) {
+      const f = fScore.get(k) || Infinity;
+      if (f < bestF) { bestF = f; best = v; }
+    }
+    
+    if (best[0] === goal[0] && best[1] === goal[1]) {
+      const path = [];
+      let cur = key(best[0],best[1]);
+      while (came.has(cur)) {
+        const [cx,cy] = cur.split(',').map(Number);
+        path.unshift([(cx+0.5)*TILE, (cy+0.5)*TILE]);
+        cur = came.get(cur);
+      }
+      return path;
+    }
+    
+    open.delete(key(best[0],best[1]));
+    
+    for (const [dx,dy] of dirs) {
+      const nx = best[0]+dx, ny = best[1]+dy;
+      if (isBlocked(nx,ny)) continue;
+      
+      const nk = key(nx,ny);
+      const tg = (gScore.get(key(best[0],best[1])) || 0) + 1;
+      
+      if (tg < (gScore.get(nk) || Infinity)) {
+        came.set(nk, key(best[0],best[1]));
+        gScore.set(nk, tg);
+        fScore.set(nk, tg + h(nx,ny));
+        if (!open.has(nk)) open.set(nk, [nx,ny]);
+      }
+    }
+  }
+  return null;
+}
+
+// ===== DELTA-TIME MOVEMENT =====
+function moveAgent(a, dt) {
+  if (a.path && a.pathIdx < a.path.length) {
+    const [tx, ty] = a.path[a.pathIdx];
+    const dx = tx - a.x, dy = ty - a.y;
+    const dist = Math.hypot(dx, dy);
+    
+    if (dist < 2) {
+      a.pathIdx++;
+      if (a.pathIdx >= a.path.length) {
+        a.path = null;
+        a.pathIdx = 0;
+        a.moving = false;
+      }
+    } else {
+      const speed = 60 * speedMul;
+      const step = speed * dt;
+      const ratio = Math.min(step / dist, 1);
+      
+      // Compute proposed new position
+      let nx = a.x + dx * ratio;
+      let ny = a.y + dy * ratio;
+      
+      // Collision check: use solidAt() to detect walls/furniture
+      // Try full move first, then axis-separated for wall-sliding
+      if (!solidAt(nx, ny)) {
+        a.x = nx; a.y = ny;
+      } else if (!solidAt(nx, a.y)) {
+        // Can move along X only (slide along Y-blocked wall)
+        a.x = nx;
+      } else if (!solidAt(a.x, ny)) {
+        // Can move along Y only (slide along X-blocked wall)
+        a.y = ny;
+      } else {
+        // Both axes blocked — stop and clear path so AI can re-route
+        a.path = null;
+        a.pathIdx = 0;
+        a.moving = false;
+        return;
+      }
+      
+      a.moving = true;
+      
+      if (Math.abs(dx) > Math.abs(dy)) {
+        a.facing = dx > 0 ? 'right' : 'left';
+      } else {
+        a.facing = dy > 0 ? 'down' : 'up';
+      }
+      
+      a.walkPhase += dt * 12 * speedMul;
+    }
+  } else {
+    a.moving = false;
+  }
+}
+
+// ===== KANBAN AI =====
+function updateKanbanAI(a, dt) {
+  // If agent has a task, work on it
+  if (a.currentTask) {
+    a.taskProgress += dt * speedMul;
+    
+    // Update phrase based on task
+    const pct = Math.min(100, Math.floor((a.taskProgress / a.currentTask.duration) * 100));
+    a.phrase = `${a.currentTask.name} (${pct}%)`;
+    
+    // Task complete
+    if (a.taskProgress >= a.currentTask.duration) {
+      // Move from DOING to DONE
+      const idx = KANBAN.doing.indexOf(a.currentTask);
+      if (idx >= 0) {
+        KANBAN.doing.splice(idx, 1);
+        a.currentTask.endTime = simTime;
+        KANBAN.done.push(a.currentTask);
+        KANBAN.completed++;
+      }
+      
+      // Update task phrase
+      const compliments = ['Done! ✅', 'Ship it! 🚀', 'Nailed it! 💪', 'Clean work! ✨', 'AAA quality! 🏆'];
+      a.phrase = compliments[Math.floor(Math.random()*compliments.length)] + ' ' + a.currentTask.name;
+      a.currentTask = null;
+      a.taskProgress = 0;
+      
+      // Promote from TODO to DOING if available
+      promoteTasks();
+      renderKanban();
+    }
+    return;
+  }
+  
+  // If idle, try to pick a task from TODO
+  if (!a.currentTask) {
+    // Find a task in TODO that matches this agent's role
+    let bestTask = null;
+    let bestIdx = -1;
+    
+    for (let i = 0; i < KANBAN.todo.length; i++) {
+      const task = KANBAN.todo[i];
+      // Match by role
+      if (task.roleKey === a.id || task.roleName === 'Any') {
+        bestTask = task;
+        bestIdx = i;
+        break;
+      }
+    }
+    
+    // If no role-matched task, pick any unassigned
+    if (!bestTask) {
+      for (let i = 0; i < KANBAN.todo.length; i++) {
+        if (!KANBAN.todo[i].assignee) {
+          bestTask = KANBAN.todo[i];
+          bestIdx = i;
+          break;
+        }
+      }
+    }
+    
+    if (bestTask) {
+      // Claim task
+      KANBAN.todo.splice(bestIdx, 1);
+      bestTask.assignee = a.id;
+      bestTask.startTime = simTime;
+      a.currentTask = bestTask;
+      a.taskProgress = 0;
+      KANBAN.doing.push(bestTask);
+      
+      // Navigate to task zone
+      const zone = ZONES[bestTask.zone];
+      if (zone) {
+        a.path = findPath(a.x, a.y, zone.x, zone.y);
+        a.pathIdx = 0;
+        if (a.path && a.path.length > 0) a.moving = true;
+      }
+      
+      a.phrase = `Working: ${bestTask.name}`;
+      renderKanban();
+    } else {
+      // No task — go to home zone and idle
+      const zone = ZONES[a.zone];
+      if (zone && !a.path) {
+        a.path = findPath(a.x, a.y, zone.x, zone.y);
+        a.pathIdx = 0;
+      }
+      a.phrase = "Waiting for tasks...";
+    }
+  }
+}
+
+function promoteTasks() {
+  // Promote from BACKLOG to TODO if TODO is low
+  while (KANBAN.todo.length < 6 && KANBAN.backlog.length > 0) {
+    KANBAN.todo.push(KANBAN.backlog.shift());
+  }
+}
+
+// ===== DRAW CHARACTER =====
+function drawAgent(a) {
+  const px = Math.floor(a.x), py = Math.floor(a.y);
+
+  // Delta-time walk animation: smooth sinusoidal cycles
+  // walkPhase advances in moveAgent() as: walkPhase += dt * 12 * speedMul
+  const bob = a.moving ? Math.sin(a.walkPhase) * 2.0 : 0;
+  // Legs: opposite phase to body bob, larger amplitude for visible stride
+  const legSwing = a.moving ? Math.sin(a.walkPhase + Math.PI) * 4.0 : 0;
+  // Arms: 90° phase offset from legs for natural arm-swing feel
+  const armSwing = a.moving ? Math.sin(a.walkPhase + Math.PI / 2) * 2.5 : 0;
+
+  // Shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.4)';
+  ctx.fillRect(px - 5, py - 1, 10, 3);
+
+  // Legs — directional: side views alternate stride, front/back stride in place
+  ctx.fillStyle = '#1a1a2a';
+  if (a.facing === 'left') {
+    // Left-walking: left leg forward when legSwing < 0, right leg forward when > 0
+    ctx.fillRect(px - 4, py - 2 + legSwing * 0.3, 2, 5 - Math.abs(legSwing) * 0.08);
+    ctx.fillRect(px + 0, py - 2 - legSwing * 0.3, 2, 5 - Math.abs(legSwing) * 0.08);
+  } else if (a.facing === 'right') {
+    ctx.fillRect(px - 2, py - 2 - legSwing * 0.3, 2, 5 - Math.abs(legSwing) * 0.08);
+    ctx.fillRect(px + 2, py - 2 + legSwing * 0.3, 2, 5 - Math.abs(legSwing) * 0.08);
+  } else if (a.facing === 'up') {
+    // Walking away: legs move up/down alternately
+    ctx.fillRect(px - 3, py - 4 + legSwing * 0.2, 2, 5);
+    ctx.fillRect(px + 1, py - 4 - legSwing * 0.2, 2, 5);
+  } else {
+    // Walking toward viewer (down): legs stride forward/back
+    ctx.fillRect(px - 3, py - 4 - legSwing * 0.2, 2, 5);
+    ctx.fillRect(px + 1, py - 4 + legSwing * 0.2, 2, 5);
+  }
+
+  // Body — bob with slight ease via sin (smoother landing feel)
+  ctx.fillStyle = a.color;
+  ctx.fillRect(px - 4, py - 8 + bob, 8, 6);
+
+  // Arms — phase-lagged swing relative to legs
+  ctx.fillStyle = a.skin || '#f0c0a0';
+  ctx.fillRect(px - 5, py - 7 + bob + armSwing, 2, 4);
+  ctx.fillRect(px + 3, py - 7 + bob - armSwing, 2, 4);
+
+  // Head — follows body bob
+  ctx.fillStyle = a.skin || '#f0c0a0';
+  ctx.fillRect(px - 3, py - 12 + bob, 6, 5);
+
+  // Hair
+  ctx.fillStyle = a.hair || '#2a1a0a';
+  if (a.facing === 'up') {
+    ctx.fillRect(px - 3, py - 13 + bob, 6, 2);
+  } else {
+    ctx.fillRect(px - 3, py - 13 + bob, 6, 3);
+    ctx.fillRect(px - 4, py - 12 + bob, 1, 2);
+    ctx.fillRect(px + 3, py - 12 + bob, 1, 2);
+  }
+
+  // Eyes — face movement direction, bob with head
+  if (a.facing !== 'up') {
+    ctx.fillStyle = '#fff';
+    if (a.facing === 'left') {
+      ctx.fillRect(px - 2, py - 10 + bob, 1, 1);
+      ctx.fillRect(px - 1, py - 10 + bob, 1, 1);
+    } else if (a.facing === 'right') {
+      ctx.fillRect(px + 1, py - 10 + bob, 1, 1);
+      ctx.fillRect(px + 2, py - 10 + bob, 1, 1);
+    } else {
+      ctx.fillRect(px - 2, py - 10 + bob, 1, 1);
+      ctx.fillRect(px + 1, py - 10 + bob, 1, 1);
+    }
+  }
+  
+  // Task indicator (small dot above head if working)
+  if (a.currentTask) {
+    ctx.fillStyle = '#ffcc00';
+    ctx.fillRect(px-1, py-16+bob, 2, 2);
+  }
+  
+  // Name tag
+  ctx.fillStyle = '#fff';
+  ctx.font = '8px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText(a.name, px, py-14+bob);
+}
+
+// ===== DRAW OFFICE =====
+function drawOffice() {
+  ctx.fillStyle = '#1a1a2e';
+  ctx.fillRect(0, 0, 640, 480);
+  
+  ctx.fillStyle = '#151524';
+  for (let y = 0; y < ROWS; y++) {
+    for (let x = 0; x < COLS; x++) {
+      if ((x+y) % 2 === 0) ctx.fillRect(x*TILE, y*TILE, TILE, TILE);
+    }
+  }
+  
+  for (let y = 0; y < ROWS; y++) {
+    for (let x = 0; x < COLS; x++) {
+      const c = MAP[y][x];
+      const px = x*TILE, py = y*TILE;
+      
+      if (c === 'W') {
+        ctx.fillStyle = '#3d3d66';
+        ctx.fillRect(px, py, TILE, TILE);
+        ctx.fillStyle = '#5a5a88';
+        ctx.fillRect(px, py, TILE, 2);
+      } else if (c === 'D') {
+        ctx.fillStyle = '#4a3a2a';
+        ctx.fillRect(px+1, py+3, TILE-2, TILE-5);
+        ctx.fillStyle = '#2a1a0a';
+        ctx.fillRect(px+2, py+4, TILE-4, 2);
+        ctx.fillStyle = '#2a2a4a';
+        ctx.fillRect(px+3, py+1, TILE-6, 4);
+        ctx.fillStyle = '#4a6aaa';
+        ctx.fillRect(px+4, py+2, TILE-8, 2);
+      } else if (c === 'T') {
+        ctx.fillStyle = '#2a5a2a';
+        ctx.fillRect(px, py, TILE, TILE);
+        ctx.fillStyle = '#1a3a1a';
+        ctx.fillRect(px+1, py+1, TILE-2, TILE-2);
+        if ((x+y)%3===0) {
+          ctx.fillStyle = '#ffcc00';
+          ctx.beginPath();
+          ctx.arc(px+5, py+5, 2, 0, Math.PI*2);
+          ctx.fill();
+        }
+      } else if (c === 'M') {
+        ctx.fillStyle = '#5a5a5a';
+        ctx.fillRect(px+2, py+2, TILE-4, TILE-3);
+        ctx.fillStyle = '#3a3a3a';
+        ctx.fillRect(px+3, py+3, TILE-6, 3);
+        ctx.fillStyle = '#aa4444';
+        ctx.fillRect(px+5, py+7, TILE-10, 2);
+      } else if (c === 'O') {
+        ctx.fillStyle = '#4a2a4a';
+        ctx.fillRect(px+1, py+2, TILE-2, TILE-3);
+        ctx.fillStyle = '#3a1a3a';
+        ctx.fillRect(px+2, py+3, TILE-4, 2);
+      } else if (c === 'G') {
+        ctx.fillStyle = '#2a2a5a';
+        ctx.fillRect(px, py, TILE, TILE);
+        ctx.fillStyle = '#4a4a8a';
+        ctx.fillRect(px+2, py+2, TILE-4, TILE-4);
+      } else if (c === 'R') {
+        ctx.fillStyle = '#1a1a1a';
+        ctx.fillRect(px+1, py+1, TILE-2, TILE-2);
+        ctx.fillStyle = '#00ff00';
+        for (let i=0; i<3; i++) ctx.fillRect(px+3, py+3+i*3, 2, 1);
+      }
+    }
+  }
+  
+  // Zone labels
+  ctx.fillStyle = 'rgba(184,120,248,0.5)';
+  ctx.font = '9px monospace';
+  ctx.textAlign = 'left';
+  for (const [k, z] of Object.entries(ZONES)) {
+    ctx.fillText(z.label, z.x+3, z.y+12);
+  }
+}
+
+// ===== KANBAN RENDER =====
+function renderKanban() {
+  document.getElementById('col-backlog').innerHTML = KANBAN.backlog.map(t => 
+    `<div class="kanban-card"><span class="role-tag role-${t.roleKey||'any'}">${t.roleName}</span><div class="task-name">${t.name}</div><div class="assignee">⏱️${t.duration}s</div></div>`
+  ).join('');
+  
+  document.getElementById('col-todo').innerHTML = KANBAN.todo.map(t => 
+    `<div class="kanban-card"><span class="role-tag role-${t.roleKey||'any'}">${t.roleName}</span><div class="task-name">${t.name}</div><div class="assignee">⏱️${t.duration}s</div></div>`
+  ).join('');
+  
+  document.getElementById('col-doing').innerHTML = KANBAN.doing.map(t => {
+    const a = agents.find(ag => ag.id === t.assignee);
+    const pct = a ? Math.min(100, Math.floor((a.taskProgress / t.duration) * 100)) : 0;
+    return `<div class="kanban-card"><span class="role-tag role-${t.roleKey||'any'}">${t.roleName}</span><div class="task-name">${t.name}</div><div class="assignee">👤 ${a?a.name:'?'} • ${pct}%</div></div>`;
+  }).join('');
+  
+  document.getElementById('col-done').innerHTML = KANBAN.done.slice(-10).map(t => 
+    `<div class="kanban-card"><span class="role-tag role-${t.roleKey||'any'}">${t.roleName}</span><div class="task-name">✅ ${t.name}</div><div class="assignee">👤 ${ROLES[t.assignee]?.title||'?'}</div></div>`
+  ).join('');
+  
+  document.getElementById('kanban-stats').innerHTML = `
+    <span>📥 Backlog: ${KANBAN.backlog.length}</span>
+    <span>📝 TODO: ${KANBAN.todo.length}</span>
+    <span>🔄 Doing: ${KANBAN.doing.length}</span>
+    <span>✅ Done: ${KANBAN.completed}/${KANBAN.total}</span>
+  `;
+}
+
+function toggleKanban() {
+  kanbanOpen = !kanbanOpen;
+  document.getElementById('kanban').style.display = kanbanOpen ? 'block' : 'none';
+  if (kanbanOpen) {
+    startKanbanPolling();
+    renderKanban();
+  } else {
+    stopKanbanPolling();
+  }
+}
+
+// ===== GAME STATE =====
+let simTime = 8 * 60;
+let lastFrame = performance.now();
+
+function updateClock() {
+  const h = Math.floor(simTime / 60);
+  const m = Math.floor(simTime % 60);
+  document.getElementById('clock').textContent = h.toString().padStart(2,'0') + ':' + m.toString().padStart(2,'0');
+}
+
+function setSpeed(s) { speedMul = s; }
+function togglePause() { paused = !paused; }
+
+// ===== MAIN LOOP =====
+function loop(now) {
+  requestAnimationFrame(loop);
+  
+  const dt = Math.min((now - lastFrame) / 1000, 0.1);
+  lastFrame = now;
+  
+  if (paused) return;
+  
+  simTime += dt * speedMul * 0.5;
+  if (simTime >= 24*60) simTime = 0;
+  
+  for (const a of agents) {
+    updateKanbanAI(a, dt);
+    moveAgent(a, dt);
+  }
+  
+  drawOffice();
+  for (const a of agents) {
+    drawAgent(a);
+  }
+  
+  updateClock();
+  
+  if (showBubble) {
+    document.getElementById('bubble').style.display = 'block';
+    document.getElementById('bubble').textContent = showBubble;
+  } else {
+    document.getElementById('bubble').style.display = 'none';
+  }
+  
+  // Kanban auto-refresh is handled by startKanbanPolling()/stopKanbanPolling() via toggleKanban()
+  // (old simTime-based refresh removed — polling keeps overlay live)
+}
+
+// ===== CLICK =====
+canvas.addEventListener('click', (e) => {
+  if (kanbanOpen) return;
+  const rect = canvas.getBoundingClientRect();
+  const mx = (e.clientX - rect.left) * (canvas.width / rect.width);
+  const my = (e.clientY - rect.top) * (canvas.height / rect.height);
+  
+  let closest = null, minD = 50;
+  for (const a of agents) {
+    const d = Math.hypot(a.x - mx, a.y - my);
+    if (d < minD) { minD = d; closest = a; }
+  }
+  
+  if (closest) {
+    const task = closest.currentTask;
+    if (task) {
+      const pct = Math.floor((closest.taskProgress / task.duration) * 100);
+      showBubble = `${closest.name}: ${task.name} (${pct}%)`;
+    } else {
+      showBubble = `${closest.name} (${closest.title}): Waiting for task...`;
+    }
+    setTimeout(() => { showBubble = null; }, 3000);
+  }
+});
+
+// ===== INIT =====
+generateSprint();
+promoteTasks();
+renderKanban();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

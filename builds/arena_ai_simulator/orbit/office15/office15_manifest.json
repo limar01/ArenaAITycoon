@@ -1,0 +1,96 @@
+{
+ "office": "office15_pc",
+ "design_of_record": "aria_spec.json (approved 2026-08-30)",
+ "master": "art_pc_final.png",
+ "tile": 28,
+ "chunks": [
+  {
+   "id": "office15_reception",
+   "file": "chunk_office15_reception.jpg",
+   "w": 9,
+   "h": 30,
+   "px": [
+    252,
+    840
+   ]
+  },
+  {
+   "id": "office15_openwork",
+   "file": "chunk_office15_openwork.jpg",
+   "w": 30,
+   "h": 30,
+   "px": [
+    840,
+    840
+   ]
+  },
+  {
+   "id": "office15_meeting",
+   "file": "chunk_office15_meeting.jpg",
+   "w": 18,
+   "h": 10,
+   "px": [
+    504,
+    280
+   ]
+  },
+  {
+   "id": "office15_private",
+   "file": "chunk_office15_private.jpg",
+   "w": 18,
+   "h": 8,
+   "px": [
+    504,
+    224
+   ]
+  },
+  {
+   "id": "office15_kitchen",
+   "file": "chunk_office15_kitchen.jpg",
+   "w": 9,
+   "h": 12,
+   "px": [
+    252,
+    336
+   ]
+  },
+  {
+   "id": "office15_lounge",
+   "file": "chunk_office15_lounge.jpg",
+   "w": 9,
+   "h": 12,
+   "px": [
+    252,
+    336
+   ]
+  }
+ ],
+ "proposed_world_layout_px": {
+  "office15_reception": [
+   0,
+   0
+  ],
+  "office15_openwork": [
+   252,
+   0
+  ],
+  "office15_meeting": [
+   1092,
+   0
+  ],
+  "office15_private": [
+   1092,
+   280
+  ],
+  "office15_kitchen": [
+   1092,
+   504
+  ],
+  "office15_lounge": [
+   1344,
+   504
+  ]
+ },
+ "desks": 15,
+ "note": "3 versions rule: PC built (this); portrait/landscape = approved mockups, built when mobile shell exists."
+}
